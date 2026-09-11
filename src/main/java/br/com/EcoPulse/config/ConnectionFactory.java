@@ -9,9 +9,9 @@ import java.sql.Statement;
 
 /** Fábrica de conexões Oracle e inicialização centralizada do schema EcoPulse. */
 public final class ConnectionFactory {
-    private static final String URL = "jdbc:oracle:thin:@localhost:1521/XEPDB1";
-    private static final String USER = "ecopulse";
-    private static final String PASSWORD = "ecopulse123";
+    private static final String URL = "jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL";
+    private static final String USER = "rm570492";
+    private static final String PASSWORD = "030307";
 
     private ConnectionFactory() { }
 
