@@ -6,10 +6,11 @@ Implementação do 3º Sprint de **Domain Driven Design using Java**, com entida
 
 - `domain`: entidades do domínio com atributos privados, construtores, getters e setters.
 - `service/UserService`: regras de negócio, validação, normalização de dados e orquestração do agregado `User`.
-- `repository/UserRepository`: persistência JDBC exclusiva de `User`.
-- `repository/AvatarRepository`: persistência JDBC exclusiva de `Avatar`.
-- `repository/MissionRepository`: persistência JDBC exclusiva de `Mission`.
-- `repository/GenericRepository`: repositório genérico mantido para futuras entidades simples, sem substituir os três repositories específicos.
+- `repository/dao/UserDao`: DAO obrigatório que contém a lógica JDBC de `User`.
+- `repository/dao/AvatarDao`: DAO obrigatório que contém a lógica JDBC de `Avatar`.
+- `repository/dao/MissionDao`: DAO obrigatório que contém a lógica JDBC de `Mission`.
+- `repository/UserRepository`, `AvatarRepository` e `MissionRepository`: fachadas específicas que estendem os respectivos DAOs.
+- `repository/GenericRepository`: repositório genérico mantido para futuras entidades simples.
 - `config/ConnectionFactory`: fábrica de conexões e inicialização de todo o schema.
 - `controller`: ponto de entrada das operações para a interface.
 - `test/UserCrudTest`: classe com `main` que executa e valida Create, Read, Update e Delete.
@@ -17,6 +18,8 @@ Implementação do 3º Sprint de **Domain Driven Design using Java**, com entida
 ## Métodos específicos de usuário
 
 A entidade `User` possui `getDisplayName`, `hasCompleteProfile`, `isValidEmail` e `updateProfile`. O `UserService` complementa essas regras com pesquisa por nome, atualização de perfil e geração de resumo do perfil. Essas operações estão disponíveis no menu **Gerenciar Usuários**: criar, listar, pesquisar por nome, consultar por ID, atualizar perfil, exibir resumo e excluir.
+
+Os services utilizam diretamente os DAOs como fonte de execução dos métodos de persistência. Os repositories específicos permanecem disponíveis como fachadas de compatibilidade.
 
 `Avatar` possui `getDisplayName`, `isEvolved`, `getExperienceToNextLevel`, `registerInteraction` e `addExperience`. `Mission` possui `isAvailable`, `getDisplayTitle`, `awardsPoints`, `activate`, `deactivate` e `updateDetails`. Os menus de Avatar e Missões permitem criar, listar, evoluir/registrar interação, alterar status, atualizar detalhes e excluir registros.
 

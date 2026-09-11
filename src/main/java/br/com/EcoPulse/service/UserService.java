@@ -1,7 +1,7 @@
 package br.com.EcoPulse.service;
 
 import br.com.EcoPulse.domain.User;
-import br.com.EcoPulse.repository.UserRepository;
+import br.com.EcoPulse.repository.dao.UserDao;
 
 import java.time.Instant;
 import java.util.List;
@@ -11,24 +11,24 @@ import java.util.regex.Pattern;
 /** Regras de negócio e orquestração do agregado User. */
 public class UserService {
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
-    private final UserRepository userRepository;
-    public UserService() { this.userRepository = new UserRepository(); }
-    public UserService(UserRepository userRepository) { this.userRepository = userRepository; }
+    private final UserDao userDao;
+    public UserService() { this.userDao = new UserDao(); }
+    public UserService(UserDao userDao) { this.userDao = userDao; }
 
     public User create(User user) {
         validate(user); user.setUsername(user.getUsername().trim()); user.setEmail(user.getEmail().trim().toLowerCase());
-        Instant now = Instant.now(); user.setCreatedAt(now); user.setUpdatedAt(now); return userRepository.create(user);
+        Instant now = Instant.now(); user.setCreatedAt(now); user.setUpdatedAt(now); return userDao.create(user);
     }
-    public List<User> getAll() { return userRepository.findAll(); }
+    public List<User> getAll() { return userDao.findAll(); }
     public List<User> searchByUsername(String username) {
         if (username == null || username.isBlank()) throw new IllegalArgumentException("Termo de pesquisa obrigatório");
-        return userRepository.findByUsername(username);
+        return userDao.findByUsername(username);
     }
-    public Optional<User> findById(Long id) { if (id == null || id <= 0) throw new IllegalArgumentException("ID inválido"); return userRepository.findById(id); }
+    public Optional<User> findById(Long id) { if (id == null || id <= 0) throw new IllegalArgumentException("ID inválido"); return userDao.findById(id); }
     public User updateProfile(Long id, String username, String email) {
         User user = findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + id));
         user.updateProfile(username, email);
-        return userRepository.update(user);
+        return userDao.update(user);
     }
     public String getProfileSummary(Long id) {
         User user = findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + id));
@@ -36,9 +36,9 @@ public class UserService {
     }
     public User update(User user) {
         if (user.getId() == null) throw new IllegalArgumentException("ID obrigatório para atualização");
-        validate(user); user.setUsername(user.getUsername().trim()); user.setEmail(user.getEmail().trim().toLowerCase()); user.setUpdatedAt(Instant.now()); return userRepository.update(user);
+        validate(user); user.setUsername(user.getUsername().trim()); user.setEmail(user.getEmail().trim().toLowerCase()); user.setUpdatedAt(Instant.now()); return userDao.update(user);
     }
-    public boolean delete(Long id) { if (id == null || id <= 0) throw new IllegalArgumentException("ID inválido"); return userRepository.deleteById(id); }
+    public boolean delete(Long id) { if (id == null || id <= 0) throw new IllegalArgumentException("ID inválido"); return userDao.deleteById(id); }
     private void validate(User user) {
         if (user == null) throw new IllegalArgumentException("Usuário obrigatório");
         if (user.getUsername() == null || user.getUsername().isBlank() || user.getUsername().trim().length() < 2) throw new IllegalArgumentException("Nome deve ter ao menos 2 caracteres");
