@@ -1,5 +1,6 @@
 package br.com.EcoPulse.config;
 
+import br.com.EcoPulse.exception.PersistenceException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -41,7 +42,7 @@ public final class ConnectionFactory {
         try (Connection connection = getConnection()) {
             for (String table : tables) createTableIfAbsent(connection, table);
         } catch (SQLException exception) {
-            throw new IllegalStateException("Não foi possível inicializar o banco Oracle", exception);
+            throw new PersistenceException("Não foi possível inicializar o banco Oracle", exception);
         }
     }
 
