@@ -3,6 +3,7 @@ package br.com.EcoPulse.interfaces;
 import br.com.EcoPulse.controller.AvatarController;
 import br.com.EcoPulse.controller.MissionController;
 import br.com.EcoPulse.controller.UserController;
+import br.com.EcoPulse.config.ConnectionFactory;
 import br.com.EcoPulse.domain.Avatar;
 import br.com.EcoPulse.domain.Mission;
 import br.com.EcoPulse.domain.User;
@@ -30,6 +31,7 @@ public class Exibition {
                     case "2" -> handleAvatarMenu();
                     case "3" -> handleMissionMenu();
                     case "0" -> {
+                        ConnectionFactory.clearData();
                         System.out.println(Texts.EXIT_MESSAGE);
                         running = false;
                     }

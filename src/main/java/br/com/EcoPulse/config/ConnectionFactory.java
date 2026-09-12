@@ -46,6 +46,20 @@ public final class ConnectionFactory {
         }
     }
 
+    /** Remove todos os registros, preservando as tabelas e o schema. */
+    public static void clearData() {
+        String[] tables = {
+            "T_CHLNG_USER_REWARDS", "T_CHLNG_USER_MISSIONS", "T_CHLNG_GROUP_CHALLENGES",
+            "T_CHLNG_STREAKS", "T_CHLNG_AVATARS", "T_CHLNG_ACTIVITIES", "T_CHLNG_MISSIONS",
+            "T_CHLNG_REWARDS", "T_CHLNG_CHALLENGES", "T_CHLNG_COMMUNITIES", "T_CHLNG_USERS"
+        };
+        try (Connection connection = getConnection(); Statement statement = connection.createStatement()) {
+            for (String table : tables) statement.executeUpdate("DELETE FROM " + table);
+        } catch (SQLException exception) {
+            throw new PersistenceException("Não foi possível limpar os registros do banco Oracle", exception);
+        }
+    }
+
     private static void createTableIfAbsent(Connection connection, String ddl) throws SQLException {
         String tableName = ddl.substring("CREATE TABLE ".length(), ddl.indexOf(" (")).toUpperCase();
         String query = "SELECT COUNT(*) FROM USER_TABLES WHERE TABLE_NAME = ?";

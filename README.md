@@ -17,6 +17,8 @@ Implementação do 3º Sprint de **Domain Driven Design using Java**, com entida
 ## Exceções
 
 O projeto utiliza `DomainValidationException` para entradas inválidas, `ResourceNotFoundException` para entidades inexistentes, `PersistenceException` para falhas JDBC e `EcoPulseException` como base das falhas de aplicação. O menu interativo captura essas exceções e exibe a mensagem ao usuário sem encerrar o programa.
+
+Ao selecionar `0. Sair` no menu principal, o método `ConnectionFactory.clearData()` remove os registros das tabelas na ordem correta das chaves estrangeiras. O schema e as tabelas permanecem criados para a próxima execução.
 - `config/ConnectionFactory`: fábrica de conexões e inicialização de todo o schema.
 - `controller`: ponto de entrada das operações para a interface.
 - `test/UserCrudTest`: classe com `main` que executa e valida Create, Read, Update e Delete.
