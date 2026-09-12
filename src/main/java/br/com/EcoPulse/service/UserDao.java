@@ -13,10 +13,17 @@ public class UserDao {
 
     public User create(User user) {
         String sql = "INSERT INTO T_CHLNG_USERS (external_id, username, email, created_at, updated_at) VALUES (?, ?, ?, ?, ?)";
-        try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, user.getExternalId()); ps.setString(2, user.getUsername()); ps.setString(3, user.getEmail());
             ps.setTimestamp(4, Timestamp.from(user.getCreatedAt())); ps.setTimestamp(5, Timestamp.from(user.getUpdatedAt())); ps.executeUpdate();
-            try (ResultSet keys = ps.getGeneratedKeys()) { if (keys.next()) user.setId(keys.getLong(1)); }
+            String idQuery = "SELECT id FROM T_CHLNG_USERS WHERE email = ?";
+            try (PreparedStatement idStatement = c.prepareStatement(idQuery)) {
+                idStatement.setString(1, user.getEmail());
+                try (ResultSet result = idStatement.executeQuery()) {
+                    if (!result.next()) throw new SQLException("Usuário criado, mas o ID não foi localizado");
+                    user.setId(result.getLong("id"));
+                }
+            }
             return user;
         } catch (SQLException e) { throw new IllegalStateException("Erro ao criar usuário", e); }
     }
