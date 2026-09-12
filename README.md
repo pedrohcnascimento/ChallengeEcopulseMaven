@@ -11,6 +11,7 @@ Implementação do 3º Sprint de **Domain Driven Design using Java**, com entida
 - `repository/dao/MissionDao`: DAO obrigatório que contém a lógica JDBC de `Mission`.
 - `repository/UserRepository`, `AvatarRepository` e `MissionRepository`: fachadas específicas que estendem os respectivos DAOs.
 - `repository/GenericRepository`: repositório genérico mantido para futuras entidades simples.
+- `src/test/java/br/com/EcoPulse/test`: testes automatizados Maven para as entidades `User`, `Avatar` e `Mission`.
 - `config/ConnectionFactory`: fábrica de conexões e inicialização de todo o schema.
 - `controller`: ponto de entrada das operações para a interface.
 - `test/UserCrudTest`: classe com `main` que executa e valida Create, Read, Update e Delete.
@@ -50,4 +51,12 @@ Para iniciar o menu interativo:
 
 ```bash
 mvn exec:java -Dexec.mainClass=br.com.EcoPulse.interfaces.Exibition
+```
+
+## Testes
+
+O teste manual `UserCrudTest`, que contém o método `main` exigido para demonstração do CRUD, foi movido para `src/test/java`. Os testes unitários `UserTest`, `AvatarTest` e `MissionTest` cobrem os métodos de negócio, getters e setters relevantes, regras de estado e lançamento de `IllegalArgumentException` para entradas inválidas. Execute toda a suíte com:
+
+```bash
+mvn clean test
 ```
