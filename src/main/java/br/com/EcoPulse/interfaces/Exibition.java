@@ -6,6 +6,7 @@ import br.com.EcoPulse.controller.UserController;
 import br.com.EcoPulse.domain.Avatar;
 import br.com.EcoPulse.domain.Mission;
 import br.com.EcoPulse.domain.User;
+import br.com.EcoPulse.exception.EcoPulseException;
 
 import java.util.List;
 import java.util.Scanner;
@@ -34,7 +35,7 @@ public class Exibition {
                     }
                     default -> System.out.println(Texts.INVALID_OPTION);
                 }
-            } catch (IllegalArgumentException exception) {
+            } catch (EcoPulseException | IllegalArgumentException exception) {
                 System.out.println("Erro: " + exception.getMessage());
             }
         }
@@ -58,7 +59,7 @@ public class Exibition {
                     case "0" -> back = true;
                     default -> System.out.println(Texts.INVALID_OPTION);
                 }
-            } catch (IllegalArgumentException exception) {
+            } catch (EcoPulseException | IllegalArgumentException exception) {
                 System.out.println("Erro: " + exception.getMessage());
             }
         }
@@ -144,7 +145,7 @@ public class Exibition {
                     case "0" -> back = true;
                     default -> System.out.println(Texts.INVALID_OPTION);
                 }
-            } catch (IllegalArgumentException exception) {
+            } catch (EcoPulseException | IllegalArgumentException exception) {
                 System.out.println("Erro: " + exception.getMessage());
             }
         }
@@ -223,7 +224,7 @@ public class Exibition {
                     case "0" -> back = true;
                     default -> System.out.println(Texts.INVALID_OPTION);
                 }
-            } catch (IllegalArgumentException exception) {
+            } catch (EcoPulseException | IllegalArgumentException exception) {
                 System.out.println("Erro: " + exception.getMessage());
             }
         }

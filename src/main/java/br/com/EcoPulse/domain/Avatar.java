@@ -1,5 +1,6 @@
 package br.com.EcoPulse.domain;
 
+import br.com.EcoPulse.exception.DomainValidationException;
 import java.time.Instant;
 
 public class Avatar {
@@ -64,7 +65,7 @@ public class Avatar {
     public long getExperienceToNextLevel() { return Math.max(0L, (level == null ? 1L : level) * 1000L - (experiencePoints == null ? 0L : experiencePoints)); }
     public void registerInteraction() { this.lastInteraction = Instant.now(); this.updatedAt = this.lastInteraction; }
     public void addExperience(long points) {
-        if (points <= 0) throw new IllegalArgumentException("A experiência deve ser positiva");
+        if (points <= 0) throw new DomainValidationException("A experiência deve ser positiva");
         if (experiencePoints == null) experiencePoints = 0L;
         if (level == null || level < 1) level = 1;
         experiencePoints += points;

@@ -2,6 +2,8 @@ package br.com.EcoPulse.repository.dao;
 
 import br.com.EcoPulse.config.ConnectionFactory;
 import br.com.EcoPulse.domain.User;
+import br.com.EcoPulse.exception.PersistenceException;
+import br.com.EcoPulse.exception.ResourceNotFoundException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,13 +27,13 @@ public class UserDao {
                 }
             }
             return user;
-        } catch (SQLException e) { throw new IllegalStateException("Erro ao criar usuário", e); }
+        } catch (SQLException e) { throw new PersistenceException("Erro ao criar usuário", e); }
     }
 
     public Optional<User> findById(Long id) {
         try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement("SELECT " + COLUMNS + " FROM T_CHLNG_USERS WHERE id = ?")) {
             ps.setLong(1, id); try (ResultSet rs = ps.executeQuery()) { return rs.next() ? Optional.of(map(rs)) : Optional.empty(); }
-        } catch (SQLException e) { throw new IllegalStateException("Erro ao buscar usuário", e); }
+        } catch (SQLException e) { throw new PersistenceException("Erro ao buscar usuário", e); }
     }
 
     public List<User> findByUsername(String username) {
@@ -40,14 +42,14 @@ public class UserDao {
         try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, "%" + username.trim() + "%");
             try (ResultSet rs = ps.executeQuery()) { while (rs.next()) users.add(map(rs)); return users; }
-        } catch (SQLException e) { throw new IllegalStateException("Erro ao pesquisar usuários", e); }
+        } catch (SQLException e) { throw new PersistenceException("Erro ao pesquisar usuários", e); }
     }
 
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
         try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement("SELECT " + COLUMNS + " FROM T_CHLNG_USERS ORDER BY id"); ResultSet rs = ps.executeQuery()) {
             while (rs.next()) users.add(map(rs)); return users;
-        } catch (SQLException e) { throw new IllegalStateException("Erro ao listar usuários", e); }
+        } catch (SQLException e) { throw new PersistenceException("Erro ao listar usuários", e); }
     }
 
     public User update(User user) {
@@ -55,14 +57,14 @@ public class UserDao {
         try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
             ps.setString(1, user.getExternalId()); ps.setString(2, user.getUsername()); ps.setString(3, user.getEmail());
             ps.setTimestamp(4, Timestamp.from(user.getUpdatedAt())); ps.setLong(5, user.getId());
-            if (ps.executeUpdate() == 0) throw new IllegalArgumentException("Usuário não encontrado: " + user.getId()); return user;
-        } catch (SQLException e) { throw new IllegalStateException("Erro ao atualizar usuário", e); }
+            if (ps.executeUpdate() == 0) throw new ResourceNotFoundException("Usuário não encontrado: " + user.getId()); return user;
+        } catch (SQLException e) { throw new PersistenceException("Erro ao atualizar usuário", e); }
     }
 
     public boolean deleteById(Long id) {
         try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement("DELETE FROM T_CHLNG_USERS WHERE id = ?")) {
             ps.setLong(1, id); return ps.executeUpdate() > 0;
-        } catch (SQLException e) { throw new IllegalStateException("Erro ao excluir usuário", e); }
+        } catch (SQLException e) { throw new PersistenceException("Erro ao excluir usuário", e); }
     }
 
     private User map(ResultSet rs) throws SQLException {

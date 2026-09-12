@@ -12,6 +12,11 @@ Implementação do 3º Sprint de **Domain Driven Design using Java**, com entida
 - `repository/UserRepository`, `AvatarRepository` e `MissionRepository`: fachadas específicas que estendem os respectivos DAOs.
 - `repository/GenericRepository`: repositório genérico mantido para futuras entidades simples.
 - `src/test/java/br/com/EcoPulse/test`: testes automatizados Maven para as entidades `User`, `Avatar` e `Mission`.
+- `exception`: exceções específicas de domínio, recurso ausente e persistência.
+
+## Exceções
+
+O projeto utiliza `DomainValidationException` para entradas inválidas, `ResourceNotFoundException` para entidades inexistentes, `PersistenceException` para falhas JDBC e `EcoPulseException` como base das falhas de aplicação. O menu interativo captura essas exceções e exibe a mensagem ao usuário sem encerrar o programa.
 - `config/ConnectionFactory`: fábrica de conexões e inicialização de todo o schema.
 - `controller`: ponto de entrada das operações para a interface.
 - `test/UserCrudTest`: classe com `main` que executa e valida Create, Read, Update e Delete.

@@ -1,5 +1,6 @@
 package br.com.EcoPulse.domain;
 
+import br.com.EcoPulse.exception.DomainValidationException;
 import java.time.Instant;
 
 public class Mission {
@@ -60,8 +61,8 @@ public class Mission {
     public void activate() { isActive = true; updatedAt = Instant.now(); }
     public void deactivate() { isActive = false; updatedAt = Instant.now(); }
     public void updateDetails(String title, String description, Integer rewardPoints) {
-        if (title == null || title.isBlank()) throw new IllegalArgumentException("Título obrigatório");
-        if (rewardPoints == null || rewardPoints < 0) throw new IllegalArgumentException("Pontuação inválida");
+        if (title == null || title.isBlank()) throw new DomainValidationException("Título obrigatório");
+        if (rewardPoints == null || rewardPoints < 0) throw new DomainValidationException("Pontuação inválida");
         this.title = title.trim(); this.description = description; this.rewardPoints = rewardPoints; this.updatedAt = Instant.now();
     }
 }

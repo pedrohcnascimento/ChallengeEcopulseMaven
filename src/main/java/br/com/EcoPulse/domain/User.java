@@ -1,5 +1,6 @@
 package br.com.EcoPulse.domain;
 
+import br.com.EcoPulse.exception.DomainValidationException;
 import java.time.Instant;
 
 public class User {
@@ -57,8 +58,8 @@ public class User {
 
     /** Atualiza os dados editáveis do perfil, mantendo os valores normalizados. */
     public void updateProfile(String username, String email) {
-        if (username == null || username.isBlank()) throw new IllegalArgumentException("Nome obrigatório");
-        if (email == null || !email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) throw new IllegalArgumentException("E-mail inválido");
+        if (username == null || username.isBlank()) throw new DomainValidationException("Nome obrigatório");
+        if (email == null || !email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) throw new DomainValidationException("E-mail inválido");
         this.username = username.trim();
         this.email = email.trim().toLowerCase();
         this.updatedAt = Instant.now();
