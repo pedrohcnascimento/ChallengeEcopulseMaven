@@ -6,8 +6,10 @@ Implementação do 3º Sprint de **Domain Driven Design using Java**, com entida
 
 - `domain`: entidades do domínio com atributos privados, construtores, getters e setters.
 - `service/UserService`: regras de negócio, validação, normalização de dados e orquestração do agregado `User`.
-- `service/UserDao`: classe concreta de persistência JDBC; não depende de interface DAO.
-- `repository`: repositórios legados mantidos para compatibilidade, sem participação no CRUD JDBC atual.
+- `repository/UserRepository`: persistência JDBC exclusiva de `User`.
+- `repository/AvatarRepository`: persistência JDBC exclusiva de `Avatar`.
+- `repository/MissionRepository`: persistência JDBC exclusiva de `Mission`.
+- `repository/GenericRepository`: repositório genérico mantido para futuras entidades simples, sem substituir os três repositories específicos.
 - `config/ConnectionFactory`: fábrica de conexões e inicialização de todo o schema.
 - `controller`: ponto de entrada das operações para a interface.
 - `test/UserCrudTest`: classe com `main` que executa e valida Create, Read, Update e Delete.

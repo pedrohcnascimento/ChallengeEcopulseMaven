@@ -1,4 +1,4 @@
-package br.com.EcoPulse.service;
+package br.com.EcoPulse.repository;
 
 import br.com.EcoPulse.config.ConnectionFactory;
 import br.com.EcoPulse.domain.User;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 /** DAO concreto responsável pela persistência JDBC de usuários. */
-public class UserDao {
+public class UserRepository {
     private static final String COLUMNS = "id, external_id, username, email, created_at, updated_at";
 
     public User create(User user) {

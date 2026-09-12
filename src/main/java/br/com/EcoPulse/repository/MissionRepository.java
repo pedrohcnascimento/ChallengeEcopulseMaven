@@ -1,4 +1,4 @@
-package br.com.EcoPulse.service;
+package br.com.EcoPulse.repository;
 
 import br.com.EcoPulse.config.ConnectionFactory;
 import br.com.EcoPulse.domain.Mission;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class MissionDao {
+public class MissionRepository {
     private static final String COLUMNS="id,title,description,type,reward_points,reward_item_id,is_active,created_at,updated_at";
     public Mission create(Mission m){String sql="INSERT INTO T_CHLNG_MISSIONS (title,description,type,reward_points,reward_item_id,is_active,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)";try(Connection c=ConnectionFactory.getConnection();PreparedStatement ps=c.prepareStatement(sql)){bind(ps,m);ps.executeUpdate();try(PreparedStatement id=c.prepareStatement("SELECT id FROM T_CHLNG_MISSIONS WHERE title=? ORDER BY id DESC FETCH FIRST 1 ROWS ONLY")){id.setString(1,m.getTitle());try(ResultSet rs=id.executeQuery()){if(rs.next())m.setId(rs.getLong(1));}}return m;}catch(SQLException e){throw new IllegalStateException("Erro ao criar missão",e);}}
     public Optional<Mission> findById(Long id){try(Connection c=ConnectionFactory.getConnection();PreparedStatement ps=c.prepareStatement("SELECT "+COLUMNS+" FROM T_CHLNG_MISSIONS WHERE id=?")){ps.setLong(1,id);try(ResultSet rs=ps.executeQuery()){return rs.next()?Optional.of(map(rs)):Optional.empty();}}catch(SQLException e){throw new IllegalStateException("Erro ao buscar missão",e);}}

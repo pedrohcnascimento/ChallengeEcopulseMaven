@@ -1,4 +1,4 @@
-package br.com.EcoPulse.service;
+package br.com.EcoPulse.repository;
 
 import br.com.EcoPulse.config.ConnectionFactory;
 import br.com.EcoPulse.domain.Avatar;
@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class AvatarDao {
+public class AvatarRepository {
     private static final String COLUMNS = "id, user_id, name, visual_config, personality_type, level_number, experience_points, last_interaction, created_at, updated_at";
     public Avatar create(Avatar avatar) {
         String sql = "INSERT INTO T_CHLNG_AVATARS (user_id,name,visual_config,personality_type,level_number,experience_points,last_interaction,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)";
