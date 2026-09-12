@@ -1,69 +1,241 @@
 # Challenge EcoPulse
 
-Implementação do 3º Sprint de **Domain Driven Design using Java**, com entidades de domínio, regras de negócio, conexão JDBC e CRUD completo de usuários.
+## Descrição
 
-## Estrutura
+O **EcoPulse** é uma aplicação Java de console voltada ao incentivo de hábitos sustentáveis. O projeto foi desenvolvido para o 3º Sprint de **Domain Driven Design using Java** e organiza o domínio em entidades, serviços, DAOs, repositories, controllers e uma interface interativa.
 
-- `domain`: entidades do domínio com atributos privados, construtores, getters e setters.
-- `service/UserService`: regras de negócio, validação, normalização de dados e orquestração do agregado `User`.
-- `repository/dao/UserDao`: DAO obrigatório que contém a lógica JDBC de `User`.
-- `repository/dao/AvatarDao`: DAO obrigatório que contém a lógica JDBC de `Avatar`.
-- `repository/dao/MissionDao`: DAO obrigatório que contém a lógica JDBC de `Mission`.
-- `repository/UserRepository`, `AvatarRepository` e `MissionRepository`: fachadas específicas que estendem os respectivos DAOs.
-- `repository/GenericRepository`: repositório genérico mantido para futuras entidades simples.
-- `src/test/java/br/com/EcoPulse/test`: testes automatizados Maven para as entidades `User`, `Avatar` e `Mission`.
-- `exception`: exceções específicas de domínio, recurso ausente e persistência.
+A aplicação permite cadastrar e consultar usuários, criar avatares vinculados a usuários, evoluir avatares com pontos de experiência, registrar interações e gerenciar missões ambientais. A persistência é realizada em um banco Oracle por JDBC.
 
-## Exceções
+## Tecnologias
 
-O projeto utiliza `DomainValidationException` para entradas inválidas, `ResourceNotFoundException` para entidades inexistentes, `PersistenceException` para falhas JDBC e `EcoPulseException` como base das falhas de aplicação. O menu interativo captura essas exceções e exibe a mensagem ao usuário sem encerrar o programa.
+- Java 21 ou superior.
+- Maven.
+- Oracle Database.
+- Oracle JDBC `ojdbc8` versão `21.1.0.0`.
+- JUnit 5 para testes automatizados.
 
-Ao selecionar `0. Sair` no menu principal, o método `ConnectionFactory.clearData()` remove os registros das tabelas na ordem correta das chaves estrangeiras. O schema e as tabelas permanecem criados para a próxima execução.
-- `config/ConnectionFactory`: fábrica de conexões e inicialização de todo o schema.
-- `controller`: ponto de entrada das operações para a interface.
-- `test/UserCrudTest`: classe com `main` que executa e valida Create, Read, Update e Delete.
+## Estrutura do projeto
 
-## Métodos específicos de usuário
+O código de produção está em `src/main/java` e os testes estão em `src/test/java`, seguindo a convenção oficial do Maven.
 
-A entidade `User` possui `getDisplayName`, `hasCompleteProfile`, `isValidEmail` e `updateProfile`. O `UserService` complementa essas regras com pesquisa por nome, atualização de perfil e geração de resumo do perfil. Essas operações estão disponíveis no menu **Gerenciar Usuários**: criar, listar, pesquisar por nome, consultar por ID, atualizar perfil, exibir resumo e excluir.
+```text
+src/
+├── main/java/br/com/EcoPulse/
+│   ├── config/          # ConnectionFactory e inicialização do schema
+│   ├── controller/      # Entrada das operações da aplicação
+│   ├── domain/          # Entidades User, Avatar, Mission e demais entidades
+│   ├── exception/       # Exceções específicas da aplicação
+│   ├── interfaces/      # Menus e aplicação de console
+│   ├── repository/      # Repositories específicos e GenericRepository
+│   │   └── dao/         # UserDao, AvatarDao e MissionDao
+│   └── service/         # Regras de negócio
+└── test/java/br/com/EcoPulse/test/
+    ├── UserCrudTest.java  # Teste manual com método main
+    ├── UserTest.java      # Testes automatizados de User
+    ├── AvatarTest.java    # Testes automatizados de Avatar
+    └── MissionTest.java   # Testes automatizados de Mission
+```
 
-Os services utilizam diretamente os DAOs como fonte de execução dos métodos de persistência. Os repositories específicos permanecem disponíveis como fachadas de compatibilidade.
+## Banco de dados Oracle
 
-`Avatar` possui `getDisplayName`, `isEvolved`, `getExperienceToNextLevel`, `registerInteraction` e `addExperience`. `Mission` possui `isAvailable`, `getDisplayTitle`, `awardsPoints`, `activate`, `deactivate` e `updateDetails`. Os menus de Avatar e Missões permitem criar, listar, evoluir/registrar interação, alterar status, atualizar detalhes e excluir registros.
+A conexão está centralizada em:
 
-## Banco de dados
+```text
+src/main/java/br/com/EcoPulse/config/ConnectionFactory.java
+```
 
-O projeto usa Oracle Database via JDBC com a dependência `ojdbc8` versão `21.1.0.0`. A conexão padrão utiliza `jdbc:oracle:thin:@localhost:1521/XEPDB1`, usuário `ecopulse` e senha `ecopulse123`, definidos na `ConnectionFactory` conforme solicitado no enunciado. Todas as tabelas seguem o padrão obrigatório `T_CHLNG_<NOME_DA_TABELA>`:
+Configuração padrão:
 
-`T_CHLNG_USERS`, `T_CHLNG_ACTIVITIES`, `T_CHLNG_AVATARS`, `T_CHLNG_CHALLENGES`, `T_CHLNG_COMMUNITIES`, `T_CHLNG_GROUP_CHALLENGES`, `T_CHLNG_MISSIONS`, `T_CHLNG_REWARDS`, `T_CHLNG_STREAKS`, `T_CHLNG_USER_MISSIONS` e `T_CHLNG_USER_REWARDS`.
+```text
+URL:      jdbc:oracle:thin:@localhost:1521/XEPDB1
+Usuário:  ecopulse
+Senha:    ecopulse123
+```
 
-A `ConnectionFactory` cria automaticamente as tabelas Oracle e suas chaves estrangeiras na primeira execução, verificando previamente a existência de cada tabela no dicionário `USER_TABLES`.
+Antes de executar a aplicação ou o teste manual, o Oracle Database deve estar ativo, o listener deve estar escutando na porta `1521` e o serviço `XEPDB1` deve existir. A dependência obrigatória está no `pom.xml`:
 
-## Como executar
+```xml
+<dependency>
+    <groupId>com.oracle.database.jdbc</groupId>
+    <artifactId>ojdbc8</artifactId>
+    <version>21.1.0.0</version>
+</dependency>
+```
 
-É necessário ter Java 21 e Maven instalados. Na raiz do projeto:
+Na primeira execução, a `ConnectionFactory` cria as tabelas com o prefixo obrigatório `T_CHLNG_`, incluindo `T_CHLNG_USERS`, `T_CHLNG_AVATARS`, `T_CHLNG_MISSIONS` e as demais tabelas do domínio.
+
+## Preparação no IntelliJ IDEA
+
+Abra no IntelliJ a pasta raiz que contém o arquivo `pom.xml`. Não abra somente a pasta `src`.
+
+Depois:
+
+1. Abra a janela **Maven**.
+2. Clique em **Reload All Maven Projects**.
+3. Confirme que a dependência `ojdbc8-21.1.0.0.jar` aparece no classpath.
+4. Confirme que `src/main/java` está marcado como **Sources Root**.
+5. Confirme que `src/test/java` está marcado como **Test Sources Root**.
+6. Use uma configuração de execução com o módulo Maven do projeto.
+
+Se o classpath mostrar apenas `target/classes`, mas não mostrar o arquivo `ojdbc8-21.1.0.0.jar`, recarregue o Maven antes de executar.
+
+## Compilação
+
+Na raiz do projeto, execute:
 
 ```bash
 mvn clean compile
-mvn exec:java -Dexec.mainClass=br.com.EcoPulse.test.UserCrudTest
 ```
 
-No IntelliJ IDEA, abra o projeto pela raiz que contém o `pom.xml` e selecione **Add as Maven Project** ou **Reload All Maven Projects**. A configuração de execução precisa conter a biblioteca Maven `com.oracle.database.jdbc:ojdbc8:21.1.0.0` no classpath. Se o comando de execução mostrar somente `out/production/Challenge`, sem o arquivo `ojdbc8-21.1.0.0.jar`, o driver não foi incluído e ocorrerá `No suitable driver found`.
+Esse comando compila todas as classes de produção em `src/main/java`.
 
-Também é possível configurar manualmente em **File > Project Structure > Libraries > + > From Maven**, informando `com.oracle.database.jdbc:ojdbc8:21.1.0.0`, e adicionando a biblioteca ao módulo `Challenge`.
+## Testes automatizados
 
-A saída esperada, com uma instância Oracle acessível, confirma `CREATE`, `READ`, `UPDATE`, `DELETE` e `CRUD executado com sucesso.`
+Os testes automatizados estão em:
 
-Para iniciar o menu interativo:
-
-```bash
-mvn exec:java -Dexec.mainClass=br.com.EcoPulse.interfaces.Exibition
+```text
+src/test/java/br/com/EcoPulse/test/
 ```
 
-## Testes
-
-O teste manual `UserCrudTest`, que contém o método `main` exigido para demonstração do CRUD, foi movido para `src/test/java`. Os testes unitários `UserTest`, `AvatarTest` e `MissionTest` cobrem os métodos de negócio, getters e setters relevantes, regras de estado e lançamento de `IllegalArgumentException` para entradas inválidas. Execute toda a suíte com:
+### Executar todos os testes
 
 ```bash
 mvn clean test
 ```
+
+A suíte contém:
+
+| Classe | Cobertura |
+|---|---|
+| `UserTest` | Getters, setters, validação de e-mail, perfil completo, nome de exibição, atualização de perfil e erros de validação. |
+| `AvatarTest` | Getters, setters, nome de exibição, evolução, cálculo de experiência, interação e erro para experiência inválida. |
+| `MissionTest` | Getters, setters, disponibilidade, pontuação, ativação, desativação, atualização e erros de validação. |
+
+Esses testes exercitam as regras de domínio e não precisam de uma conexão Oracle, pois não executam persistência.
+
+O relatório do Surefire é gerado em:
+
+```text
+target/surefire-reports/
+```
+
+### Executar somente uma classe de teste
+
+```bash
+mvn -Dtest=UserTest test
+mvn -Dtest=AvatarTest test
+mvn -Dtest=MissionTest test
+```
+
+## Teste manual do CRUD
+
+O teste manual exigido pelo enunciado está em:
+
+```text
+src/test/java/br/com/EcoPulse/test/UserCrudTest.java
+```
+
+Ele possui um método `main` que simula:
+
+1. Create de usuário.
+2. Read por ID.
+3. Update de usuário.
+4. Delete de usuário.
+
+Como ele está em `src/test/java`, execute com o classpath de testes:
+
+```bash
+mvn test-compile exec:java \
+  -Dexec.mainClass=br.com.EcoPulse.test.UserCrudTest \
+  -Dexec.classpathScope=test
+```
+
+Esse comando exige o Oracle Database ativo e configurado. A saída esperada é semelhante a:
+
+```text
+CREATE: 1
+READ: OK
+UPDATE: OK
+DELETE: OK
+CRUD executado com sucesso.
+```
+
+Também é possível abrir `UserCrudTest.java` no IntelliJ e executar o método `main` diretamente. Nesse caso, a configuração de execução precisa incluir as dependências Maven, principalmente o `ojdbc8`.
+
+## Menu interativo executável
+
+A classe executável do menu está em:
+
+```text
+src/main/java/br/com/EcoPulse/interfaces/Exibition.java
+```
+
+O nome da classe principal é:
+
+```text
+br.com.EcoPulse.interfaces.Exibition
+```
+
+Para iniciar pelo Maven:
+
+```bash
+mvn compile exec:java \
+  -Dexec.mainClass=br.com.EcoPulse.interfaces.Exibition
+```
+
+Para iniciar pelo IntelliJ, abra `Exibition.java` e execute o método `main` pelo botão de execução ao lado da declaração da classe.
+
+### Funcionalidades do menu
+
+O menu principal disponibiliza:
+
+```text
+1. Gerenciar Usuários
+2. Gerenciar Avatar
+3. Ver Missões
+0. Sair
+```
+
+Em **Gerenciar Usuários**:
+
+- Criar usuário.
+- Listar usuários.
+- Pesquisar por nome.
+- Consultar por ID.
+- Atualizar perfil.
+- Exibir resumo do perfil.
+- Excluir usuário.
+
+Em **Gerenciar Avatar**:
+
+- Criar avatar vinculado a um usuário existente.
+- Listar avatares.
+- Adicionar experiência.
+- Registrar interação.
+- Excluir avatar.
+
+Em **Ver Missões**:
+
+- Criar missão.
+- Listar todas as missões.
+- Listar somente as missões ativas.
+- Atualizar detalhes.
+- Ativar ou desativar missão.
+- Excluir missão.
+
+Ao selecionar `0. Sair` no menu principal, as linhas são removidas das tabelas na ordem correta das chaves estrangeiras. As tabelas e o schema permanecem no banco para a próxima execução.
+
+## Exceções
+
+As exceções específicas ficam em:
+
+```text
+src/main/java/br/com/EcoPulse/exception/
+```
+
+- `DomainValidationException`: dados inválidos e regras de domínio.
+- `ResourceNotFoundException`: entidade não encontrada.
+- `PersistenceException`: falha de conexão ou operação JDBC.
+- `EcoPulseException`: exceção base das falhas da aplicação.
+
+O menu captura essas falhas e apresenta mensagens ao usuário sem encerrar a aplicação em situações de validação ou recurso inexistente.
