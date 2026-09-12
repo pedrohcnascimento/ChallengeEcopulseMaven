@@ -1,0 +1,121 @@
+classDiagram
+    class User {
+        -Long id
+        -String externalId
+        -String username
+        -String email
+        -Instant createdAt
+        -Instant updatedAt
+        +getDisplayName() String
+        +hasCompleteProfile() boolean
+        +isValidEmail() boolean
+        +updateProfile(String, String) void
+    }
+    class Avatar {
+        -Long id
+        -Long userId
+        -String name
+        -String visualConfig
+        -String personalityType
+        -Integer level
+        -Long experiencePoints
+        -Instant lastInteraction
+        +getDisplayName() String
+        +isEvolved() boolean
+        +getExperienceToNextLevel() long
+        +registerInteraction() void
+        +addExperience(long) void
+    }
+    class Mission {
+        -Long id
+        -String title
+        -String description
+        -String type
+        -Integer rewardPoints
+        -Long rewardItemId
+        -Boolean isActive
+        -Instant createdAt
+        -Instant updatedAt
+        +isAvailable() boolean
+        +getDisplayTitle() String
+        +awardsPoints() boolean
+        +activate() void
+        +deactivate() void
+        +updateDetails(String, String, Integer) void
+    }
+    class UserService {
+        -UserDao userDao
+        +create(User) User
+        +getAll() List~User~
+        +searchByUsername(String) List~User~
+        +findById(Long) Optional~User~
+        +updateProfile(Long, String, String) User
+        +getProfileSummary(Long) String
+        +update(User) User
+        +delete(Long) boolean
+    }
+    class AvatarService {
+        -AvatarDao dao
+        -UserDao userDao
+        +create(Avatar) Avatar
+        +getAll() List~Avatar~
+        +findById(Long) Optional~Avatar~
+        +addExperience(Long, long) Avatar
+        +registerInteraction(Long) Avatar
+        +delete(Long) boolean
+    }
+    class MissionService {
+        -MissionDao dao
+        +create(Mission) Mission
+        +getAll() List~Mission~
+        +getActive() List~Mission~
+        +findById(Long) Optional~Mission~
+        +updateDetails(Long, String, String, Integer) Mission
+        +changeStatus(Long, boolean) Mission
+        +delete(Long) boolean
+    }
+    class UserDao {
+        +create(User) User
+        +findById(Long) Optional~User~
+        +findByUsername(String) List~User~
+        +findAll() List~User~
+        +update(User) User
+        +deleteById(Long) boolean
+    }
+    class AvatarDao {
+        +create(Avatar) Avatar
+        +findById(Long) Optional~Avatar~
+        +findAll() List~Avatar~
+        +update(Avatar) Avatar
+        +deleteById(Long) boolean
+    }
+    class MissionDao {
+        +create(Mission) Mission
+        +findById(Long) Optional~Mission~
+        +findAll(boolean) List~Mission~
+        +update(Mission) Mission
+        +deleteById(Long) boolean
+    }
+    class ConnectionFactory {
+        +getConnection() Connection
+        +initializeDatabase() void
+        +clearData() void
+    }
+    class Exibition {
+        +main(String[]) void
+    }
+    UserService --> UserDao : usa
+    AvatarService --> AvatarDao : usa
+    AvatarService --> UserDao : valida proprietário
+    MissionService --> MissionDao : usa
+    UserDao ..> ConnectionFactory : JDBC
+    AvatarDao ..> ConnectionFactory : JDBC
+    MissionDao ..> ConnectionFactory : JDBC
+    UserService --> User : orquestra
+    AvatarService --> Avatar : orquestra
+    MissionService --> Mission : orquestra
+    Avatar --> User : userId
+    Mission --> User : rewardItemId
+    Exibition --> UserService : chama
+    Exibition --> AvatarService : chama
+    Exibition --> MissionService : chama

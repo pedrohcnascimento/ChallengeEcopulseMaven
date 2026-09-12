@@ -1,0 +1,105 @@
+erDiagram
+    T_CHLNG_USERS ||--o{ T_CHLNG_ACTIVITIES : possui
+    T_CHLNG_USERS ||--o{ T_CHLNG_AVATARS : possui
+    T_CHLNG_USERS ||--o{ T_CHLNG_STREAKS : mantem
+    T_CHLNG_USERS ||--o{ T_CHLNG_USER_MISSIONS : participa
+    T_CHLNG_USERS ||--o{ T_CHLNG_USER_REWARDS : recebe
+    T_CHLNG_MISSIONS ||--o{ T_CHLNG_USER_MISSIONS : e_associada
+    T_CHLNG_REWARDS ||--o{ T_CHLNG_USER_REWARDS : e_concedida
+    T_CHLNG_REWARDS ||--o{ T_CHLNG_MISSIONS : recompensa
+    T_CHLNG_CHALLENGES ||--o{ T_CHLNG_GROUP_CHALLENGES : agrupa
+
+    T_CHLNG_USERS {
+        NUMBER id PK
+        VARCHAR2 external_id
+        VARCHAR2 username
+        VARCHAR2 email UK
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    T_CHLNG_ACTIVITIES {
+        NUMBER id PK
+        NUMBER user_id FK
+        VARCHAR2 type
+        TIMESTAMP activity_timestamp
+        VARCHAR2 metadata
+    }
+    T_CHLNG_AVATARS {
+        NUMBER id PK
+        NUMBER user_id FK
+        VARCHAR2 name
+        VARCHAR2 visual_config
+        VARCHAR2 personality_type
+        NUMBER level_number
+        NUMBER experience_points
+        TIMESTAMP last_interaction
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    T_CHLNG_MISSIONS {
+        NUMBER id PK
+        VARCHAR2 title
+        VARCHAR2 description
+        VARCHAR2 type
+        NUMBER reward_points
+        NUMBER reward_item_id FK
+        NUMBER is_active
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    T_CHLNG_REWARDS {
+        NUMBER id PK
+        VARCHAR2 name
+        VARCHAR2 description
+        VARCHAR2 type
+        NUMBER reward_value
+    }
+    T_CHLNG_CHALLENGES {
+        NUMBER id PK
+        VARCHAR2 title
+        VARCHAR2 description
+        VARCHAR2 rules
+        TIMESTAMP start_date
+        TIMESTAMP end_date
+        NUMBER reward_points
+        VARCHAR2 status
+    }
+    T_CHLNG_GROUP_CHALLENGES {
+        NUMBER id PK
+        NUMBER group_id
+        NUMBER challenge_id FK
+        NUMBER score
+        VARCHAR2 status
+    }
+    T_CHLNG_STREAKS {
+        NUMBER id PK
+        NUMBER user_id FK
+        VARCHAR2 type
+        NUMBER current_count
+        NUMBER highest_count
+        TIMESTAMP last_activity_at
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    T_CHLNG_USER_MISSIONS {
+        NUMBER id PK
+        NUMBER user_id FK
+        NUMBER mission_id FK
+        VARCHAR2 status
+        NUMBER progress
+        TIMESTAMP completed_at
+        TIMESTAMP assigned_at
+    }
+    T_CHLNG_USER_REWARDS {
+        NUMBER id PK
+        NUMBER user_id FK
+        NUMBER reward_id FK
+        TIMESTAMP acquired_at
+        NUMBER is_claimed
+    }
+    T_CHLNG_COMMUNITIES {
+        NUMBER id PK
+        VARCHAR2 name
+        VARCHAR2 description
+        TIMESTAMP created_at
+    }
