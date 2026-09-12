@@ -47,12 +47,13 @@ src/main/java/br/com/EcoPulse/config/ConnectionFactory.java
 Configuração padrão:
 
 ```text
-URL:      jdbc:oracle:thin:@localhost:1521/XEPDB1
-Usuário:  ecopulse
-Senha:    ecopulse123
+URL:      jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
+Usuário:  rm570492
+Senha:    030307
+Serviço/SID: ORCL
 ```
 
-Antes de executar a aplicação ou o teste manual, o Oracle Database deve estar ativo, o listener deve estar escutando na porta `1521` e o serviço `XEPDB1` deve existir. A dependência obrigatória está no `pom.xml`:
+Antes de executar a aplicação ou o teste manual, é necessário ter acesso à instância Oracle remota da FIAP em `oracle.fiap.com.br:1521`, com o SID/serviço `ORCL`. O projeto não utiliza `localhost` nem o serviço `XEPDB1`. A dependência obrigatória está no `pom.xml`:
 
 ```xml
 <dependency>

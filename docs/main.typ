@@ -129,7 +129,7 @@ A execução recomendada utiliza IntelliJ IDEA por sua integração com projetos
   [Java Development Kit], [JDK 21 ou superior.],
   [Maven], [Versão compatível com Java 21 e acesso ao Maven Central.],
   [IntelliJ IDEA], [Versão atual com suporte a Maven; Eclipse, NetBeans e VS Code também são alternativas.],
-  [Oracle Database], [Instância ativa com serviço `XEPDB1` na porta `1521`.],
+  [Oracle Database FIAP], [Serviço `ORCL` em `oracle.fiap.com.br:1521`.],
   [Driver JDBC], [`com.oracle.database.jdbc:ojdbc8:21.1.0.0`.],
   [JUnit], [JUnit Jupiter 5.10.2, executado pelo Maven Surefire.],
 )
@@ -142,17 +142,19 @@ Abra a pasta raiz do projeto, que contém `pom.xml`. Não abra somente a pasta `
 
 Confirme se a dependência `ojdbc8` foi resolvida no classpath. Se o projeto for aberto em uma IDE diferente, importe-o como um projeto Maven existente a partir do arquivo `pom.xml`.
 
-== 7.2 Configuração Oracle
+== 7.2 Configuração Oracle FIAP
 
-Antes da execução do menu ou do teste manual, inicie o Oracle Database e confirme a disponibilidade do serviço `XEPDB1`. A configuração está em `ConnectionFactory.java`:
+Antes da execução do menu ou do teste manual, confirme o acesso à instância Oracle disponibilizada pela FIAP. O projeto não utiliza um Oracle local com `XEPDB1`; ele utiliza o host remoto e o SID `ORCL` definidos em `ConnectionFactory.java`:
 
 ```text
-URL: jdbc:oracle:thin:@localhost:1521/XEPDB1
-Usuário: ecopulse
-Senha: ecopulse123
+URL: jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
+Usuário: rm570492
+Senha: 030307
+Driver: oracle.jdbc.OracleDriver
+Serviço/SID: ORCL
 ```
 
-Na primeira conexão, a aplicação tenta criar as tabelas ausentes. O usuário Oracle precisa possuir permissões para criar e manipular as tabelas do schema.
+Na primeira conexão, a aplicação tenta criar as tabelas ausentes no schema do usuário `rm570492`. O usuário precisa possuir permissões para criar e manipular as tabelas. A senha é documentada porque está definida diretamente no código-fonte conforme o requisito da entrega; em um ambiente real, ela deveria ser substituída por uma variável de ambiente ou um gerenciador de segredos.
 
 == 7.3 Compilação
 
