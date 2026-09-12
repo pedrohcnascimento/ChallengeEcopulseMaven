@@ -34,6 +34,15 @@ public class UserDao {
         } catch (SQLException e) { throw new IllegalStateException("Erro ao buscar usuário", e); }
     }
 
+    public List<User> findByUsername(String username) {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT " + COLUMNS + " FROM T_CHLNG_USERS WHERE UPPER(username) LIKE UPPER(?) ORDER BY username";
+        try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setString(1, "%" + username.trim() + "%");
+            try (ResultSet rs = ps.executeQuery()) { while (rs.next()) users.add(map(rs)); return users; }
+        } catch (SQLException e) { throw new IllegalStateException("Erro ao pesquisar usuários", e); }
+    }
+
     public List<User> findAll() {
         List<User> users = new ArrayList<>();
         try (Connection c = ConnectionFactory.getConnection(); PreparedStatement ps = c.prepareStatement("SELECT " + COLUMNS + " FROM T_CHLNG_USERS ORDER BY id"); ResultSet rs = ps.executeQuery()) {

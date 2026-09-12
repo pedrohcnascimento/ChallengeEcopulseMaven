@@ -12,6 +12,10 @@ Implementação do 3º Sprint de **Domain Driven Design using Java**, com entida
 - `controller`: ponto de entrada das operações para a interface.
 - `test/UserCrudTest`: classe com `main` que executa e valida Create, Read, Update e Delete.
 
+## Métodos específicos de usuário
+
+A entidade `User` possui `getDisplayName`, `hasCompleteProfile`, `isValidEmail` e `updateProfile`. O `UserService` complementa essas regras com pesquisa por nome, atualização de perfil e geração de resumo do perfil. Essas operações estão disponíveis no menu **Gerenciar Usuários**: criar, listar, pesquisar por nome, consultar por ID, atualizar perfil, exibir resumo e excluir.
+
 ## Banco de dados
 
 O projeto usa Oracle Database via JDBC com a dependência `ojdbc8` versão `21.1.0.0`. A conexão padrão utiliza `jdbc:oracle:thin:@localhost:1521/XEPDB1`, usuário `ecopulse` e senha `ecopulse123`, definidos na `ConnectionFactory` conforme solicitado no enunciado. Todas as tabelas seguem o padrão obrigatório `T_CHLNG_<NOME_DA_TABELA>`:

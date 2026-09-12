@@ -39,4 +39,28 @@ public class User {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    /** Retorna o nome pronto para exibição na aplicação. */
+    public String getDisplayName() {
+        return username == null || username.isBlank() ? "Usuário sem nome" : username.trim();
+    }
+
+    /** Indica se os dados mínimos de contato estão preenchidos. */
+    public boolean hasCompleteProfile() {
+        return username != null && !username.isBlank() && isValidEmail();
+    }
+
+    /** Valida o formato básico do e-mail do agregado. */
+    public boolean isValidEmail() {
+        return email != null && email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
+    }
+
+    /** Atualiza os dados editáveis do perfil, mantendo os valores normalizados. */
+    public void updateProfile(String username, String email) {
+        if (username == null || username.isBlank()) throw new IllegalArgumentException("Nome obrigatório");
+        if (email == null || !email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) throw new IllegalArgumentException("E-mail inválido");
+        this.username = username.trim();
+        this.email = email.trim().toLowerCase();
+        this.updatedAt = Instant.now();
+    }
 }

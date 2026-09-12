@@ -19,7 +19,20 @@ public class UserService {
         Instant now = Instant.now(); user.setCreatedAt(now); user.setUpdatedAt(now); return userDao.create(user);
     }
     public List<User> getAll() { return userDao.findAll(); }
+    public List<User> searchByUsername(String username) {
+        if (username == null || username.isBlank()) throw new IllegalArgumentException("Termo de pesquisa obrigatório");
+        return userDao.findByUsername(username);
+    }
     public Optional<User> findById(Long id) { if (id == null || id <= 0) throw new IllegalArgumentException("ID inválido"); return userDao.findById(id); }
+    public User updateProfile(Long id, String username, String email) {
+        User user = findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + id));
+        user.updateProfile(username, email);
+        return userDao.update(user);
+    }
+    public String getProfileSummary(Long id) {
+        User user = findById(id).orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado: " + id));
+        return "Nome: " + user.getDisplayName() + " | E-mail: " + user.getEmail() + " | Perfil completo: " + (user.hasCompleteProfile() ? "sim" : "não");
+    }
     public User update(User user) {
         if (user.getId() == null) throw new IllegalArgumentException("ID obrigatório para atualização");
         validate(user); user.setUsername(user.getUsername().trim()); user.setEmail(user.getEmail().trim().toLowerCase()); user.setUpdatedAt(Instant.now()); return userDao.update(user);

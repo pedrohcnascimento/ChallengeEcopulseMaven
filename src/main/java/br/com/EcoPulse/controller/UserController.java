@@ -10,7 +10,10 @@ public class UserController {
     public UserController() { ConnectionFactory.initializeDatabase(); this.userService = new UserService(); }
     public User createUser(User user) { return userService.create(user); }
     public List<User> listUsers() { return userService.getAll(); }
+    public List<User> searchUsers(String username) { return userService.searchByUsername(username); }
     public User findUser(Long id) { return userService.findById(id).orElse(null); }
+    public User updateUserProfile(Long id, String username, String email) { return userService.updateProfile(id, username, email); }
+    public String getUserProfileSummary(Long id) { return userService.getProfileSummary(id); }
     public User updateUser(User user) { return userService.update(user); }
     public boolean removeUser(Long id) { return userService.delete(id); }
 }
