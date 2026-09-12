@@ -27,4 +27,18 @@ public final class Texts {
     public static final String PROMPT_EMAIL = "Digite o e-mail: ";
     public static final String PROMPT_ID = "Digite o ID: ";
     public static final String PROMPT_SEARCH = "Digite parte do nome: ";
+    public static final String AVATAR_MENU_TITLE = "\n--- Gestão de Avatares ---";
+    public static final String MISSION_MENU_TITLE = "\n--- Gestão de Missões ---";
+    public static final String AVATAR_CREATE = "1. Criar avatar";
+    public static final String AVATAR_LIST = "2. Listar avatares";
+    public static final String AVATAR_EXPERIENCE = "3. Adicionar experiência";
+    public static final String AVATAR_INTERACTION = "4. Registrar interação";
+    public static final String AVATAR_DELETE = "5. Excluir avatar";
+    public static final String MISSION_CREATE = "1. Criar missão";
+    public static final String MISSION_LIST = "2. Listar todas";
+    public static final String MISSION_ACTIVE = "3. Listar ativas";
+    public static final String MISSION_UPDATE = "4. Atualizar detalhes";
+    public static final String MISSION_STATUS = "5. Ativar/desativar missão";
+    public static final String MISSION_DELETE = "6. Excluir missão";
+    public static final String BACK = "0. Voltar";
 }

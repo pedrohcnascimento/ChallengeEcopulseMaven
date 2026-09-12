@@ -59,4 +59,16 @@ public class Avatar {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public String getDisplayName() { return name == null || name.isBlank() ? "Avatar sem nome" : name.trim(); }
+    public boolean isEvolved() { return level != null && level >= 5; }
+    public long getExperienceToNextLevel() { return Math.max(0L, (level == null ? 1L : level) * 1000L - (experiencePoints == null ? 0L : experiencePoints)); }
+    public void registerInteraction() { this.lastInteraction = Instant.now(); this.updatedAt = this.lastInteraction; }
+    public void addExperience(long points) {
+        if (points <= 0) throw new IllegalArgumentException("A experiência deve ser positiva");
+        if (experiencePoints == null) experiencePoints = 0L;
+        if (level == null || level < 1) level = 1;
+        experiencePoints += points;
+        level = (int) (experiencePoints / 1000L) + 1;
+        updatedAt = Instant.now();
+    }
 }

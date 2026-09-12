@@ -54,4 +54,14 @@ public class Mission {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+    public boolean isAvailable() { return Boolean.TRUE.equals(isActive); }
+    public String getDisplayTitle() { return title == null || title.isBlank() ? "Missão sem título" : title.trim(); }
+    public boolean awardsPoints() { return rewardPoints != null && rewardPoints > 0; }
+    public void activate() { isActive = true; updatedAt = Instant.now(); }
+    public void deactivate() { isActive = false; updatedAt = Instant.now(); }
+    public void updateDetails(String title, String description, Integer rewardPoints) {
+        if (title == null || title.isBlank()) throw new IllegalArgumentException("Título obrigatório");
+        if (rewardPoints == null || rewardPoints < 0) throw new IllegalArgumentException("Pontuação inválida");
+        this.title = title.trim(); this.description = description; this.rewardPoints = rewardPoints; this.updatedAt = Instant.now();
+    }
 }
