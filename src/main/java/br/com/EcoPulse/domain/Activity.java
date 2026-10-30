@@ -1,5 +1,6 @@
 package br.com.EcoPulse.domain;
 
+import br.com.EcoPulse.exception.DomainValidationException;
 import java.time.Instant;
 
 public class Activity {
@@ -34,4 +35,12 @@ public class Activity {
 
     public String getMetadata() { return metadata; }
     public void setMetadata(String metadata) { this.metadata = metadata; }
+
+    public void validate() {
+        if (userId == null || userId <= 0) throw new DomainValidationException("Usuário da atividade é obrigatório");
+        if (type == null || type.isBlank()) throw new DomainValidationException("Tipo da atividade é obrigatório");
+        if (metadata != null && metadata.length() > 2000) throw new DomainValidationException("Metadata da atividade excede 2000 caracteres");
+        this.type = type.trim().toUpperCase();
+        if (this.timestamp == null) this.timestamp = Instant.now();
+    }
 }

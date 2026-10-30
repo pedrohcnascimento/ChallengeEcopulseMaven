@@ -1,8 +1,15 @@
 package br.com.EcoPulse.domain;
 
+import br.com.EcoPulse.exception.DomainValidationException;
 import java.time.Instant;
+import java.util.Set;
 
 public class UserMission {
+    public static final String STATUS_EM_ANDAMENTO = "EM_ANDAMENTO";
+    public static final String STATUS_CONCLUIDA = "CONCLUIDA";
+    public static final String STATUS_CANCELADA = "CANCELADA";
+    public static final Set<String> ALLOWED_STATUSES = Set.of(STATUS_EM_ANDAMENTO, STATUS_CONCLUIDA, STATUS_CANCELADA);
+
     private Long id;
     private Long userId;
     private Long missionId;
@@ -44,4 +51,19 @@ public class UserMission {
 
     public Instant getAssignedAt() { return assignedAt; }
     public void setAssignedAt(Instant assignedAt) { this.assignedAt = assignedAt; }
+
+    public void updateProgress(int newProgress) {
+        if (newProgress < 0 || newProgress > 100) throw new DomainValidationException("O progresso da missão deve estar entre 0 e 100%");
+        if (STATUS_CONCLUIDA.equals(this.status)) throw new DomainValidationException("Não é possível alterar o progresso de uma missão já concluída");
+        if (STATUS_CANCELADA.equals(this.status)) throw new DomainValidationException("Não é possível alterar o progresso de uma participação cancelada");
+        this.progress = newProgress;
+    }
+
+    public void markCompleted(Instant timestamp) {
+        if (STATUS_CONCLUIDA.equals(this.status)) throw new DomainValidationException("A missão já foi concluída por este usuário");
+        if (STATUS_CANCELADA.equals(this.status)) throw new DomainValidationException("Não é possível concluir uma participação cancelada");
+        this.status = STATUS_CONCLUIDA;
+        this.progress = 100;
+        this.completedAt = timestamp == null ? Instant.now() : timestamp;
+    }
 }

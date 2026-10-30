@@ -1,8 +1,14 @@
 package br.com.EcoPulse.domain;
 
+import br.com.EcoPulse.exception.DomainValidationException;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 
 public class Streak {
+    public static final ZoneId DEFAULT_ZONE = ZoneId.of("America/Sao_Paulo");
+
     private Long id;
     private Long userId;
     private String type;
@@ -49,4 +55,35 @@ public class Streak {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public void validateCounts() {
+        if (currentCount == null || currentCount < 0) throw new DomainValidationException("Contagem atual de streak não pode ser negativa");
+        if (highestCount == null || highestCount < currentCount) throw new DomainValidationException("O recorde (highestCount) deve ser maior ou igual à contagem atual");
+    }
+
+    public void registerActivity(Instant activityTime, ZoneId zoneId) {
+        ZoneId zone = zoneId == null ? DEFAULT_ZONE : zoneId;
+        Instant eventTime = activityTime == null ? Instant.now() : activityTime;
+        if (currentCount == null || currentCount < 0) currentCount = 0;
+        if (highestCount == null || highestCount < currentCount) highestCount = currentCount;
+
+        if (lastActivityAt == null) {
+            currentCount = 1;
+        } else {
+            LocalDate lastDate = lastActivityAt.atZone(zone).toLocalDate();
+            LocalDate currentDate = eventTime.atZone(zone).toLocalDate();
+            long daysBetween = ChronoUnit.DAYS.between(lastDate, currentDate);
+            if (daysBetween == 0) {
+                if (currentCount == 0) currentCount = 1;
+            } else if (daysBetween == 1) {
+                currentCount += 1;
+            } else if (daysBetween > 1) {
+                currentCount = 1;
+            }
+        }
+        if (currentCount > highestCount) highestCount = currentCount;
+        if (lastActivityAt == null || eventTime.isAfter(lastActivityAt)) lastActivityAt = eventTime;
+        updatedAt = Instant.now();
+        validateCounts();
+    }
 }

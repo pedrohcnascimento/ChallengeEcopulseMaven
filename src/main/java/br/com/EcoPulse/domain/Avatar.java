@@ -11,14 +11,13 @@ public class Avatar {
     private String personalityType;
     private Integer level;
     private Long experiencePoints;
-    private Instant lastInteraction;
     private Instant createdAt;
     private Instant updatedAt;
 
     public Avatar() {
     }
 
-    public Avatar(Long id, Long userId, String name, String visualConfig, String personalityType, Integer level, Long experiencePoints, Instant lastInteraction, Instant createdAt, Instant updatedAt) {
+    public Avatar(Long id, Long userId, String name, String visualConfig, String personalityType, Integer level, Long experiencePoints, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.userId = userId;
         this.name = name;
@@ -26,7 +25,6 @@ public class Avatar {
         this.personalityType = personalityType;
         this.level = level;
         this.experiencePoints = experiencePoints;
-        this.lastInteraction = lastInteraction;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -52,18 +50,15 @@ public class Avatar {
     public Long getExperiencePoints() { return experiencePoints; }
     public void setExperiencePoints(Long experiencePoints) { this.experiencePoints = experiencePoints; }
 
-    public Instant getLastInteraction() { return lastInteraction; }
-    public void setLastInteraction(Instant lastInteraction) { this.lastInteraction = lastInteraction; }
-
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
     public String getDisplayName() { return name == null || name.isBlank() ? "Avatar sem nome" : name.trim(); }
     public boolean isEvolved() { return level != null && level >= 5; }
     public long getExperienceToNextLevel() { return Math.max(0L, (level == null ? 1L : level) * 1000L - (experiencePoints == null ? 0L : experiencePoints)); }
-    public void registerInteraction() { this.lastInteraction = Instant.now(); this.updatedAt = this.lastInteraction; }
     public void addExperience(long points) {
         if (points <= 0) throw new DomainValidationException("A experiência deve ser positiva");
         if (experiencePoints == null) experiencePoints = 0L;
