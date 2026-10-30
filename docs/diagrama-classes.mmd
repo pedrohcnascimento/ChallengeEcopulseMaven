@@ -3,13 +3,25 @@ classDiagram
         -Long id
         -String externalId
         -String username
+        -String login
+        -String passwordHash
+        -String name
+        -LocalDate birthDate
+        -String cpf
+        -String nationality
         -String email
+        -Long familyId
         -Instant createdAt
         -Instant updatedAt
         +getDisplayName() String
         +hasCompleteProfile() boolean
         +isValidEmail() boolean
-        +updateProfile(String, String) void
+        +isValidCpf() boolean
+    }
+    class Family {
+        -Long id
+        -String name
+        -String relationshipDescription
     }
     class Avatar {
         -Long id
@@ -19,11 +31,10 @@ classDiagram
         -String personalityType
         -Integer level
         -Long experiencePoints
-        -Instant lastInteraction
-        +getDisplayName() String
+        -Instant createdAt
+        -Instant updatedAt
         +isEvolved() boolean
         +getExperienceToNextLevel() long
-        +registerInteraction() void
         +addExperience(long) void
     }
     class Mission {
@@ -31,91 +42,123 @@ classDiagram
         -String title
         -String description
         -String type
-        -Integer rewardPoints
-        -Long rewardItemId
-        -Boolean isActive
+        -String rules
+        -Instant startDate
+        -Instant endDate
+        -String status
         -Instant createdAt
         -Instant updatedAt
-        +isAvailable() boolean
-        +getDisplayTitle() String
-        +awardsPoints() boolean
+        +isEligible(Instant) boolean
         +activate() void
         +deactivate() void
-        +updateDetails(String, String, Integer) void
     }
-    class UserService {
-        -UserDao userDao
-        +create(User) User
-        +getAll() List~User~
-        +searchByUsername(String) List~User~
-        +findById(Long) Optional~User~
-        +updateProfile(Long, String, String) User
-        +getProfileSummary(Long) String
-        +update(User) User
-        +delete(Long) boolean
+    class Reward {
+        -Long id
+        -String name
+        -String description
+        -String type
+        -Integer value
+        -String details
     }
-    class AvatarService {
-        -AvatarDao dao
-        -UserDao userDao
-        +create(Avatar) Avatar
-        +getAll() List~Avatar~
-        +findById(Long) Optional~Avatar~
-        +addExperience(Long, long) Avatar
-        +registerInteraction(Long) Avatar
-        +delete(Long) boolean
+    class MissionReward {
+        -Long missionId
+        -Long rewardId
     }
-    class MissionService {
-        -MissionDao dao
-        +create(Mission) Mission
-        +getAll() List~Mission~
-        +getActive() List~Mission~
-        +findById(Long) Optional~Mission~
-        +updateDetails(Long, String, String, Integer) Mission
-        +changeStatus(Long, boolean) Mission
-        +delete(Long) boolean
+    class UserMission {
+        -Long id
+        -Long userId
+        -Long missionId
+        -String status
+        -Integer progress
+        -Instant completedAt
+        -Instant assignedAt
     }
-    class UserDao {
-        +create(User) User
-        +findById(Long) Optional~User~
-        +findByUsername(String) List~User~
-        +findAll() List~User~
-        +update(User) User
-        +deleteById(Long) boolean
+    class UserReward {
+        -Long id
+        -Long userId
+        -Long rewardId
+        -Long sourceMissionId
+        -Instant acquiredAt
+        -Boolean isClaimed
     }
-    class AvatarDao {
-        +create(Avatar) Avatar
-        +findById(Long) Optional~Avatar~
-        +findAll() List~Avatar~
-        +update(Avatar) Avatar
-        +deleteById(Long) boolean
+    class Activity {
+        -Long id
+        -Long userId
+        -String type
+        -Instant timestamp
+        -String metadata
     }
-    class MissionDao {
-        +create(Mission) Mission
-        +findById(Long) Optional~Mission~
-        +findAll(boolean) List~Mission~
-        +update(Mission) Mission
-        +deleteById(Long) boolean
+    class Streak {
+        -Long id
+        -Long userId
+        -String type
+        -Integer currentCount
+        -Integer highestCount
+        -Instant lastActivityAt
+    }
+    class Community {
+        -Long id
+        -String name
+        -String description
+        -String communityType
+        -Instant createdAt
+    }
+    class UserCommunity {
+        -Long userId
+        -Long communityId
+    }
+    class MissionCommunity {
+        -Long missionId
+        -Long communityId
+        -Integer score
+        -String status
+    }
+    class Post {
+        -Long id
+        -Long userId
+        -String content
+        -String status
+        -Instant createdAt
+        -Instant updatedAt
+    }
+    class PostCounter {
+        -Long id
+        -Long postId
+        -Integer likeCount
+        -Integer commentCount
+        -Integer shareCount
+    }
+    class ConversationHistory {
+        -Long id
+        -Long userId
+        -String content
+        -Instant sentAt
+        -String recipient
+    }
+    class CorsFilter {
+        +doFilter(ServletRequest, ServletResponse, FilterChain) void
     }
     class ConnectionFactory {
         +getConnection() Connection
+        +executeInTransaction(Supplier) T
         +initializeDatabase() void
         +clearData() void
     }
-    class Exibition {
-        +main(String[]) void
-    }
-    UserService --> UserDao : usa
-    AvatarService --> AvatarDao : usa
-    AvatarService --> UserDao : valida proprietário
-    MissionService --> MissionDao : usa
-    UserDao ..> ConnectionFactory : JDBC
-    AvatarDao ..> ConnectionFactory : JDBC
-    MissionDao ..> ConnectionFactory : JDBC
-    UserService --> User : orquestra
-    AvatarService --> Avatar : orquestra
-    MissionService --> Mission : orquestra
-    Avatar --> User : userId
-    Mission --> User : rewardItemId
-    Exibition --> UserService : chama
-    Exibition --> AvatarService : chama
-    Exibition --> MissionService : chama
+
+    Family "0..1" <-- "0..*" User : familyId
+    User "1" <-- "0..*" Avatar : userId
+    User "1" <-- "0..*" Activity : userId
+    User "1" <-- "0..*" Streak : userId
+    User "1" <-- "0..*" Post : userId
+    Post "1" <-- "1" PostCounter : postId
+    User "1" <-- "0..*" ConversationHistory : userId
+    Mission "1" <-- "1..*" MissionReward : missionId
+    Reward "1" <-- "0..*" MissionReward : rewardId
+    User "1" <-- "0..*" UserMission : userId
+    Mission "1" <-- "0..*" UserMission : missionId
+    User "1" <-- "0..*" UserReward : userId
+    Reward "1" <-- "0..*" UserReward : rewardId
+    User "1" <-- "0..*" UserCommunity : userId
+    Community "1" <-- "0..*" UserCommunity : communityId
+    Mission "1" <-- "0..*" MissionCommunity : missionId
+    Community "1" <-- "0..*" MissionCommunity : communityId

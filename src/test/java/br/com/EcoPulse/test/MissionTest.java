@@ -2,33 +2,59 @@ package br.com.EcoPulse.test;
 
 import br.com.EcoPulse.domain.Mission;
 import org.junit.jupiter.api.Test;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MissionTest {
     @Test
-    void deveTestarMetodosDeStatusEPontuacao() {
-        Mission mission = new Mission();
-        mission.setId(1L); mission.setTitle("  Reciclagem  "); mission.setDescription("Separe resíduos");
-        mission.setType("ambiental"); mission.setRewardPoints(100); mission.setIsActive(true);
-        assertEquals(1L, mission.getId()); assertEquals("  Reciclagem  ", mission.getTitle());
-        assertEquals("Separe resíduos", mission.getDescription()); assertEquals("ambiental", mission.getType());
-        assertEquals(100, mission.getRewardPoints()); assertTrue(mission.getIsActive());
-        assertEquals("Reciclagem", mission.getDisplayTitle()); assertTrue(mission.isAvailable()); assertTrue(mission.awardsPoints());
+    void deveTestarStatusUnicoPeriodoOpcionalEElegibilidade() {
+        Instant now = Instant.now();
+        Mission mission = new Mission(
+                1L,
+                "  Reciclagem Doméstica  ",
+                "Separe resíduos recicláveis",
+                "AMBIENTAL",
+                "Separar plástico, papel e vidro por 7 dias",
+                now.minus(1, ChronoUnit.DAYS),
+                null,
+                Mission.STATUS_ATIVA,
+                now,
+                now);
 
-        mission.deactivate(); assertFalse(mission.isAvailable());
-        mission.activate(); assertTrue(mission.isAvailable());
-        mission.updateDetails(" Compostagem ", "Nova descrição", 250);
-        assertEquals("Compostagem", mission.getTitle()); assertEquals(250, mission.getRewardPoints());
-        assertEquals("Nova descrição", mission.getDescription());
-        mission.setRewardItemId(7L); assertEquals(7L, mission.getRewardItemId());
-        assertNotNull(mission.getUpdatedAt());
+        assertEquals("Reciclagem Doméstica", mission.getDisplayTitle());
+        assertTrue(mission.isEligible(now));
+
+        mission.deactivate();
+        assertEquals(Mission.STATUS_INATIVA, mission.getStatus());
+        assertFalse(mission.isEligible(now));
+
+        mission.activate();
+        assertTrue(mission.isEligible(now));
+
+        // Fora do período futuro -> não elegível mesmo ATIVA
+        mission.setStartDate(now.plus(2, ChronoUnit.DAYS));
+        assertFalse(mission.isEligible(now));
+
+        // Expirada -> não elegível mesmo ATIVA
+        mission.setStartDate(now.minus(5, ChronoUnit.DAYS));
+        mission.setEndDate(now.minus(1, ChronoUnit.DAYS));
+        assertFalse(mission.isEligible(now));
     }
 
     @Test
-    void deveIdentificarMissaoSemPontuacaoELancarErros() {
-        Mission mission = new Mission(); mission.setRewardPoints(0); mission.setIsActive(false);
-        assertFalse(mission.awardsPoints()); assertFalse(mission.isAvailable());
-        assertThrows(IllegalArgumentException.class, () -> mission.updateDetails("", "desc", 10));
-        assertThrows(IllegalArgumentException.class, () -> mission.updateDetails("Título", "desc", -1));
+    void deveValidarDatasEAtributosObrigatorios() {
+        Instant now = Instant.now();
+        Mission mission = new Mission();
+        mission.setStatus(Mission.STATUS_ATIVA);
+        assertThrows(RuntimeException.class, mission::validateInvariants);
+
+        assertThrows(RuntimeException.class, () -> mission.updateDetails(
+                "Compostagem",
+                "Descrição",
+                "AMBIENTAL",
+                "Regras",
+                now,
+                now.minus(1, ChronoUnit.HOURS)));
     }
 }

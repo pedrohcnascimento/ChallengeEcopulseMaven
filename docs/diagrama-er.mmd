@@ -1,105 +1,148 @@
 erDiagram
-    T_CHLNG_USERS ||--o{ T_CHLNG_ACTIVITIES : possui
-    T_CHLNG_USERS ||--o{ T_CHLNG_AVATARS : possui
-    T_CHLNG_USERS ||--o{ T_CHLNG_STREAKS : mantem
-    T_CHLNG_USERS ||--o{ T_CHLNG_USER_MISSIONS : participa
-    T_CHLNG_USERS ||--o{ T_CHLNG_USER_REWARDS : recebe
-    T_CHLNG_MISSIONS ||--o{ T_CHLNG_USER_MISSIONS : e_associada
-    T_CHLNG_REWARDS ||--o{ T_CHLNG_USER_REWARDS : e_concedida
-    T_CHLNG_REWARDS ||--o{ T_CHLNG_MISSIONS : recompensa
-    T_CHLNG_CHALLENGES ||--o{ T_CHLNG_GROUP_CHALLENGES : agrupa
+    T_SOUL_FAMILIA ||--o{ T_SOUL_USUARIO : agrupa
+    T_SOUL_USUARIO ||--o{ T_SOUL_AVATAR : possui
+    T_SOUL_USUARIO ||--o{ T_SOUL_ACTIVITY : registra
+    T_SOUL_USUARIO ||--o{ T_SOUL_STREAK : mantem
+    T_SOUL_USUARIO ||--o{ T_SOUL_USUARIO_DESAFIO : participa
+    T_SOUL_USUARIO ||--o{ T_SOUL_USUARIO_REWARD : adquire
+    T_SOUL_USUARIO ||--o{ T_SOUL_USUARIO_COMUN : integra
+    T_SOUL_USUARIO ||--o{ T_SOUL_POSTS : publica
+    T_SOUL_USUARIO ||--o{ T_SOUL_HISTORICO_CONVERSA : armazena
+    T_SOUL_DESAFIO ||--|{ T_SOUL_DESAFIO_REWARD : oferece
+    T_SOUL_REWARD ||--o{ T_SOUL_DESAFIO_REWARD : compoe
+    T_SOUL_DESAFIO ||--o{ T_SOUL_USUARIO_DESAFIO : atribuido
+    T_SOUL_REWARD ||--o{ T_SOUL_USUARIO_REWARD : concedida
+    T_SOUL_DESAFIO ||--o{ T_SOUL_USUARIO_REWARD : origina
+    T_SOUL_COMUNIDADE ||--o{ T_SOUL_USUARIO_COMUN : reune
+    T_SOUL_DESAFIO ||--o{ T_SOUL_DESAFIO_COMUN : vinculado
+    T_SOUL_COMUNIDADE ||--o{ T_SOUL_DESAFIO_COMUN : disputa
+    T_SOUL_POSTS ||--|| T_SOUL_CONTADORES : possui_metricas
 
-    T_CHLNG_USERS {
-        NUMBER id PK
+    T_SOUL_FAMILIA {
+        NUMBER cd_familia PK
+        VARCHAR2 nm_familia
+        VARCHAR2 ds_parentesco
+    }
+    T_SOUL_USUARIO {
+        NUMBER cd_usuario PK
         VARCHAR2 external_id
         VARCHAR2 username
-        VARCHAR2 email UK
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+        VARCHAR2 ds_login UK
+        VARCHAR2 ds_senha
+        VARCHAR2 nm_usuario
+        DATE dt_nascimento
+        VARCHAR2 nr_cpf UK
+        VARCHAR2 ds_nacionalidade
+        VARCHAR2 ds_email UK
+        NUMBER cd_familia FK
+        TIMESTAMP dt_criacao
+        TIMESTAMP dt_atualizacao
     }
-    T_CHLNG_ACTIVITIES {
-        NUMBER id PK
-        NUMBER user_id FK
-        VARCHAR2 type
-        TIMESTAMP activity_timestamp
-        VARCHAR2 metadata
+    T_SOUL_AVATAR {
+        NUMBER id_avatar PK
+        NUMBER cd_usuario FK
+        VARCHAR2 nm_avatar
+        VARCHAR2 ds_visual_config
+        VARCHAR2 ds_personalidade
+        NUMBER nr_nivel
+        NUMBER nr_xp
+        TIMESTAMP dt_criacao
+        TIMESTAMP dt_atualizacao
     }
-    T_CHLNG_AVATARS {
-        NUMBER id PK
-        NUMBER user_id FK
-        VARCHAR2 name
-        VARCHAR2 visual_config
-        VARCHAR2 personality_type
-        NUMBER level_number
-        NUMBER experience_points
-        TIMESTAMP last_interaction
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+    T_SOUL_DESAFIO {
+        NUMBER cd_desafio PK
+        VARCHAR2 ds_nomedesafio
+        VARCHAR2 ds_descricao
+        VARCHAR2 ds_tipo
+        VARCHAR2 ds_regras
+        TIMESTAMP dt_iniciodesafio
+        TIMESTAMP dt_fimdesafio
+        VARCHAR2 st_status
+        TIMESTAMP dt_criacao
+        TIMESTAMP dt_atualizacao
     }
-    T_CHLNG_MISSIONS {
-        NUMBER id PK
-        VARCHAR2 title
-        VARCHAR2 description
-        VARCHAR2 type
-        NUMBER reward_points
-        NUMBER reward_item_id FK
-        NUMBER is_active
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+    T_SOUL_REWARD {
+        NUMBER id_reward PK
+        VARCHAR2 nm_reward
+        VARCHAR2 ds_reward
+        VARCHAR2 tp_reward
+        NUMBER vl_reward
+        VARCHAR2 ds_detalhes
     }
-    T_CHLNG_REWARDS {
-        NUMBER id PK
-        VARCHAR2 name
-        VARCHAR2 description
-        VARCHAR2 type
-        NUMBER reward_value
+    T_SOUL_DESAFIO_REWARD {
+        NUMBER cd_desafio PK,FK
+        NUMBER id_reward PK,FK
     }
-    T_CHLNG_CHALLENGES {
-        NUMBER id PK
-        VARCHAR2 title
-        VARCHAR2 description
-        VARCHAR2 rules
-        TIMESTAMP start_date
-        TIMESTAMP end_date
-        NUMBER reward_points
-        VARCHAR2 status
+    T_SOUL_USUARIO_DESAFIO {
+        NUMBER id_usuario_desafio PK
+        NUMBER cd_usuario FK
+        NUMBER cd_desafio FK
+        VARCHAR2 st_participacao
+        NUMBER nr_progresso
+        TIMESTAMP dt_conclusao
+        TIMESTAMP dt_atribuicao
     }
-    T_CHLNG_GROUP_CHALLENGES {
-        NUMBER id PK
-        NUMBER group_id
-        NUMBER challenge_id FK
-        NUMBER score
-        VARCHAR2 status
+    T_SOUL_USUARIO_REWARD {
+        NUMBER id_usuario_reward PK
+        NUMBER cd_usuario FK
+        NUMBER id_reward FK
+        NUMBER cd_desafio_origem FK
+        TIMESTAMP dt_aquisicao
+        NUMBER fl_resgatada
     }
-    T_CHLNG_STREAKS {
-        NUMBER id PK
-        NUMBER user_id FK
-        VARCHAR2 type
-        NUMBER current_count
-        NUMBER highest_count
-        TIMESTAMP last_activity_at
-        TIMESTAMP created_at
-        TIMESTAMP updated_at
+    T_SOUL_ACTIVITY {
+        NUMBER id_activity PK
+        NUMBER cd_usuario FK
+        VARCHAR2 tp_atividade
+        TIMESTAMP dt_atividade
+        VARCHAR2 ds_metadata
     }
-    T_CHLNG_USER_MISSIONS {
-        NUMBER id PK
-        NUMBER user_id FK
-        NUMBER mission_id FK
-        VARCHAR2 status
-        NUMBER progress
-        TIMESTAMP completed_at
-        TIMESTAMP assigned_at
+    T_SOUL_STREAK {
+        NUMBER id_streak PK
+        NUMBER cd_usuario FK
+        VARCHAR2 tp_streak
+        NUMBER nr_atual
+        NUMBER nr_recorde
+        TIMESTAMP dt_ultima_atividade
+        TIMESTAMP dt_criacao
+        TIMESTAMP dt_atualizacao
     }
-    T_CHLNG_USER_REWARDS {
-        NUMBER id PK
-        NUMBER user_id FK
-        NUMBER reward_id FK
-        TIMESTAMP acquired_at
-        NUMBER is_claimed
+    T_SOUL_COMUNIDADE {
+        NUMBER cd_comunidade PK
+        VARCHAR2 nm_comunidade UK
+        VARCHAR2 ds_comunidade
+        VARCHAR2 tp_comunidade
+        TIMESTAMP dt_criacao
     }
-    T_CHLNG_COMMUNITIES {
-        NUMBER id PK
-        VARCHAR2 name
-        VARCHAR2 description
-        TIMESTAMP created_at
+    T_SOUL_USUARIO_COMUN {
+        NUMBER cd_usuario PK,FK
+        NUMBER cd_comunidade PK,FK
+    }
+    T_SOUL_DESAFIO_COMUN {
+        NUMBER cd_desafio PK,FK
+        NUMBER cd_comunidade PK,FK
+        NUMBER nr_pontuacao
+        VARCHAR2 st_status
+    }
+    T_SOUL_POSTS {
+        NUMBER id_post PK
+        NUMBER cd_usuario FK
+        VARCHAR2 ds_conteudo
+        VARCHAR2 st_post
+        TIMESTAMP dt_criacao
+        TIMESTAMP dt_atualizacao
+    }
+    T_SOUL_CONTADORES {
+        NUMBER id_contador PK
+        NUMBER id_post FK,UK
+        NUMBER nr_curtidas
+        NUMBER nr_comentarios
+        NUMBER nr_compartilhamentos
+    }
+    T_SOUL_HISTORICO_CONVERSA {
+        NUMBER id_conversa PK
+        NUMBER cd_usuario FK
+        VARCHAR2 ds_conteudo
+        TIMESTAMP dt_envio
+        VARCHAR2 ds_destinatario
     }
