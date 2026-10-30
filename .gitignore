@@ -32,3 +32,6 @@ bin/
 ### Maven / aplicação ###
 target/
 data/
+
+.env
+.m2/
