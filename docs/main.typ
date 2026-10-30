@@ -1,314 +1,394 @@
 #import "report-theme.typ": report-accent, report-theme
 
 #show: report-theme.with(
-  title: "Documentação Técnica — Challenge EcoPulse",
+  title: "Documentação Técnica — Challenge EcoPulse (4º Sprint)",
   author: "Equipe EcoPulse",
   rhythm: "report",
   running-header: true,
 )
 
-#page(margin: (top: 30%, x: 2.2cm), numbering: none, header: none)[
+// ==================== CAPA ====================
+#page(margin: (top: 26%, x: 2.2cm), numbering: none, header: none)[
   #set par(first-line-indent: 0em)
   #align(center)[
     #text(size: 26pt, weight: "bold", fill: report-accent)[Documentação Técnica]
     #v(0.5em)
-    #text(size: 20pt, weight: "bold")[Solução: EcoPulse]
-    #v(0.8em)
-    #text(size: 14pt, fill: luma(80))[Domain Driven Design using Java]
+    #text(size: 20pt, weight: "bold")[Solução: EcoPulse (SoulUp)]
+    #v(0.7em)
+    #text(size: 13.5pt, fill: luma(70))[Domain Driven Design using Java — 4º Sprint]
     #v(2em)
-    #line(length: 40%, stroke: 0.5pt + luma(160))
+    #line(length: 45%, stroke: 0.6pt + luma(160))
     #v(2em)
     #text(size: 11pt)[
-      Equipe: EcoPulse \
-      Projeto: Challenge EcoPulse \
-      Data: #datetime.today().display("[day]/[month]/[year]") \
-      Versão: 1.0
+      *Equipe:* EcoPulse \
+      *Projeto:* Challenge EcoPulse / SoulUp API RESTful \
+      *Data:* #datetime.today().display("[day]/[month]/[year]") \
+      *Versão:* 2.0 — Entrega Final (API Spring Boot + Deploy Cloud)
     ]
-    #v(1.2em)
-    #text(size: 9pt, weight: "bold")[Integrantes]
-    #v(0.35em)
-    #text(size: 8.5pt)[
+    #v(1.6em)
+    #text(size: 10pt, weight: "bold", fill: report-accent)[Integrantes]
+    #v(0.4em)
+    #text(size: 9.5pt)[
       Pedro Henrique Carvalho do Nascimento — RM 570492 \
       Gabriel Pereira de Oliveira — RM 572262 \
       Adalto Massashiro Nagabe — RM 572298 \
       Kauã Barros Ferreira — RM 571801 \
-      Murillo Siviero Lopes — RM 57272
+      Murillo Siviero Lopes — RM 572724
     ]
   ]
 ]
 
+// ==================== SUMÁRIO ====================
 #page(numbering: none, header: none)[
-  #outline(title: [Sumário], indent: 1.5em)
+  #outline(title: [Sumário], indent: 1.4em, depth: 2)
 ]
 
 #counter(page).update(1)
 
-= 1. Objetivo e escopo
+// ==================== 1. OBJETIVO E ESCOPO ====================
+= Objetivo e escopo do projeto
 
-O Challenge EcoPulse é uma aplicação Java de console criada para apoiar uma experiência de incentivo a hábitos sustentáveis. O sistema organiza usuários, seus avatares e missões ambientais em um domínio orientado a objetos, com persistência em Oracle Database por meio de JDBC.
+O *EcoPulse (SoulUp)* é uma plataforma gamificada de incentivo a hábitos sustentáveis que conecta cidadãos, famílias e comunidades por meio de missões ambientais, acompanhamento de sequências diárias (*streaks*), recompensas e evolução do mascote virtual *Souly*.
 
-O propósito principal é permitir que um usuário seja cadastrado, tenha um avatar associado e participe de uma dinâmica de evolução baseada em experiência. O sistema também oferece o cadastro e a administração de missões, incluindo ativação, desativação, atualização e controle de pontuação.
+Nesta entrega do *4º Sprint de Domain Driven Design Using Java*, a solução foi consolidada em uma *API RESTful completa* construída com *Java 21*, *Spring Boot 3.3.5* e *JDBC puro sobre Oracle Database* (padrão relacional consolidado `T_SOUL_*`), pronta para integração direta com o Front-End Web e publicada em nuvem via *Docker no Render* (`https://challengeecopulsemaven.onrender.com`).
 
-O escopo desta entrega contempla o fluxo de console para usuários, avatares e missões; as regras de negócio dessas entidades; a conexão Oracle; a criação inicial do schema; os DAOs com operações CRUD; as exceções específicas; e os testes automatizados das regras de domínio. O projeto não implementa autenticação, autorização, interface web, aplicativo mobile, processamento assíncrono ou integração com serviços externos.
+O escopo implementado abrange:
+- *Camada Modelo (`domain`):* 16 entidades de domínio que representam fielmente o modelo relacional `T_SOUL_*`, concentrando invariantes e comportamentos de negócio;
+- *Camada DAO e BO (`repository/dao` e `service`):* persistência JDBC parametrizada (`PreparedStatement`) com CRUD completo, `ConnectionFactory` centralizada com suporte a transações ACID (`ThreadLocal`) e validações de regras de negócio;
+- *Camada Resource (`resource`, `dto` e `config`):* 13 controladores REST sob `/api/v1`, contratos DTO segregados para proteção de dados sensíveis, filtro explícito `CorsFilter`, documentação interativa OpenAPI/Swagger e tratamento padronizado de exceções em `GlobalExceptionHandler`;
+- *Deploy em Nuvem:* containerização *multi-stage* via `Dockerfile` e publicação contínua na plataforma Render.
 
-A solução está estruturada segundo uma separação de responsabilidades. As entidades concentram o comportamento do domínio, os services orquestram regras e casos de uso, os DAOs executam a persistência JDBC e a interface de console coleta entradas e apresenta resultados.
+// ==================== 2. PRINCIPAIS FUNCIONALIDADES ====================
+= Principais funcionalidades da solução
 
-= 2. Funcionalidades implementadas
+== Autenticação, segurança e gestão de usuários e famílias
+O sistema separa o nome público de exibição (`username`) da credencial única de acesso (`login`). As senhas nunca trafegam nem são armazenadas em texto puro: o `PasswordHasher` aplica *BCrypt* antes da gravação em `T_SOUL_USUARIO`. Os contratos de saída separam `UserPublicResponse` (listagens públicas sem CPF ou data de nascimento) de `UserDetailResponse` (restrito ao próprio titular mediante cabeçalho `X-User-Id`), ocultando sempre `passwordHash`. O módulo de famílias (`T_SOUL_FAMILIA`) agrupa usuários e permite consultar todos os membros vinculados.
 
-== 2.1 Gerenciamento de usuários
+== Personalização e evolução de avatares (`Souly`)
+Permite cadastrar avatares personalizados (`visualConfig` e `personalityType`) vinculados a usuários previamente existentes em `T_SOUL_USUARIO`. A entidade `Avatar` gerencia a progressão gamificada em `T_SOUL_AVATAR`: ao receber pontos de experiência (`PATCH /api/v1/avatars/{id}/experience`), o nível (`level`) sobe automaticamente a cada 1.000 XP acumulados e sinaliza o estado de evolução (`isEvolved`).
 
-O módulo de usuários permite criar, listar, pesquisar por nome, consultar por identificador, atualizar perfil, exibir resumo e excluir registros. O `UserService` normaliza nome e e-mail, valida o formato mínimo do cadastro e delega as operações de persistência ao `UserDao`.
+== Missões ambientais, catálogo de recompensas e participações
+As antigas estruturas de missão e desafio foram unificadas na entidade `Mission` (`T_SOUL_DESAFIO`), com controle único de status (`ATIVA` ou `INATIVA`), regras (`rules`), data de início obrigatória e data de término opcional (`isEligible`). O catálogo de recompensas (`Reward` — `T_SOUL_REWARD`) é independente e relaciona-se em cardinalidade N:N via `T_SOUL_DESAFIO_REWARD`:
+- *Invariante transacional de criação:* toda missão exige ao menos uma recompensa previamente cadastrada; caso qualquer ID informado não exista, toda a transação é revertida (*rollback*);
+- *Proteção de integridade:* o `MissionService` bloqueia a remoção da última recompensa associada a uma missão;
+- *Conclusão e premiação automática:* em `UserMissionService`, o usuário se inscreve em missões elegíveis (`0%` a `100%` de progresso) e, ao concluir a participação (`POST /api/v1/participations/{id}/complete`), recebe automaticamente na mesma transação todas as recompensas vinculadas em `T_SOUL_USUARIO_REWARD`, podendo resgatá-las via `PATCH /api/v1/user-rewards/{id}/claim`.
 
-A entidade `User` possui regras para produzir o nome de exibição, verificar se o perfil está completo, validar o e-mail e atualizar os dados editáveis do perfil.
+== Registro de atividades sustentáveis e sequências (`Streaks`)
+Cada ação ecológica registrada em `ActivityService` (`POST /api/v1/activities`, como reciclagem, compostagem ou economia de água) persiste o evento em `T_SOUL_ACTIVITY` e atualiza transacionalmente o `Streak` correspondente do usuário em `T_SOUL_STREAK` (considerando o fuso `America/Sao_Paulo`): incrementa a sequência em dias consecutivos, mantém no mesmo dia ou reinicia para `1` após quebra de sequência, preservando sempre o recorde histórico (`highestCount`).
 
-== 2.2 Gerenciamento de avatares
+== Comunidades, desafios coletivos e feed de publicações
+O módulo de comunidades (`T_SOUL_COMUNIDADE`) gerencia grupos temáticos com nome único, associação de membros (`T_SOUL_USUARIO_COMUN`) e vínculo de missões coletivas com placar de pontuação (`MissionCommunity` — `T_SOUL_DESAFIO_COMUN`). Já o feed social (`Post` — `T_SOUL_POSTS`) inicializa atomicamente seu registro 1:1 de métricas (`PostCounter` — `T_SOUL_CONTADORES`) com contadores zerados, incrementando curtidas, comentários e compartilhamentos exclusivamente por eventos de servidor. A entidade `ConversationHistory` (`T_SOUL_HISTORICO_CONVERSA`) mantém a estrutura relacional pronta no banco sem expor endpoints de chat/IA nesta fase.
 
-O módulo de avatares permite criar um avatar vinculado a um usuário existente, listar avatares, adicionar experiência, registrar interação e excluir registros. A criação valida a existência do usuário proprietário antes de executar o `INSERT`, evitando violação de chave estrangeira.
-
-A entidade `Avatar` calcula evolução, experiência necessária para o próximo nível, nome de exibição e atualização da última interação. A experiência positiva pode elevar automaticamente o nível do avatar.
-
-== 2.3 Gerenciamento de missões
-
-O módulo de missões permite criar, listar todas, listar somente as ativas, atualizar detalhes, ativar ou desativar e excluir missões. A entidade `Mission` controla disponibilidade, pontuação, título de exibição, ativação, desativação e atualização dos dados editáveis.
-
-== 2.4 Persistência e inicialização
-
-A `ConnectionFactory` centraliza a conexão Oracle, carrega explicitamente o driver JDBC e cria as tabelas ausentes na primeira inicialização. As tabelas utilizam o prefixo obrigatório `T_CHLNG_`.
-
-Os DAOs `UserDao`, `AvatarDao` e `MissionDao` são a fonte da lógica JDBC dos três agregados principais. Os repositories específicos permanecem como fachadas de compatibilidade e o `GenericRepository` está disponível para futuras entidades simples.
-
-== 2.5 Tratamento de erros
-
-A pasta `exception` contém exceções específicas para validação de domínio, recurso inexistente e falhas de persistência. A interface interativa captura essas falhas e apresenta mensagens orientadas ao usuário, evitando o encerramento abrupto em erros previsíveis.
-
-Ao selecionar a opção `0` no menu principal, o sistema remove as linhas das tabelas na ordem correta das dependências, mas preserva o schema e as tabelas para a próxima execução.
+== Infraestrutura REST, `CorsFilter` e tratamento global de erros
+A classe `CorsFilter` implementa `jakarta.servlet.Filter` com precedência máxima, habilitando requisições *cross-origin* e respostas imediatas `200 OK` a *preflights* `OPTIONS` do Front-End. O `GlobalExceptionHandler` (`@RestControllerAdvice`) intercepta exceções de domínio, Bean Validation, autenticação, conflito e banco de dados, devolvendo respostas JSON padronizadas (`ApiErrorResponse`) com os códigos HTTP semânticos adequados.
 
 #pagebreak()
 
-= 3. Protótipo de telas
+// ==================== 3. TABELA DE ENDPOINTS ====================
+= Tabela de Endpoints (API RESTful)
 
-O arquivo `ecopulse-front-end-2semestre.zip` fornecido pela equipe contém um protótipo navegável em React e Vite, inspirado nas telas do Figma. As telas abaixo representam a experiência visual planejada para a solução. Elas são apresentadas como protótipo de interface e não substituem o menu de console nem significam que o backend Java já esteja conectado a todas as interações web.
+Todos os recursos seguem os princípios REST sob o prefixo `/api/v1`, operando com payloads JSON (`application/json`) em padrão ISO-8601. A documentação interativa *Swagger UI* fica disponível em `/swagger-ui.html`.
 
-Cada captura foi obtida a partir da execução local do protótipo. O cabeçalho é compartilhado entre as rotas e permite navegar para as páginas principais. Os botões e links descritos abaixo orientam o fluxo esperado do usuário.
+#set text(size: 8.6pt)
+#table(
+  columns: (2.3cm, 1.4cm, 5.5cm, 5.1cm, 2.7cm),
+  inset: 4.8pt,
+  align: (left, center, left, left, center),
+  fill: (x, y) => if y == 0 { report-accent.lighten(75%) } else if calc.odd(y) { luma(250) },
+  table.header(
+    [*Recurso*], [*Verbo*], [*URI*], [*Descrição*], [*Status HTTP*],
+  ),
 
-== 3.1 Tela inicial
+  [Health], [`GET`], [`/api/v1/health`], [Verifica disponibilidade da API no Render.], [`200`],
 
-#figure(
-  image("prototipo/01-home.webp", width: 92%),
-  caption: [Tela inicial do protótipo — rota `/`.]
+  [Auth], [`POST`], [`/api/v1/auth/register`], [Cadastra usuário com senha hash BCrypt.], [`201, 400, 404, 409`],
+  [Auth], [`POST`], [`/api/v1/auth/login`], [Autentica por `login` e `password`.], [`200, 400, 401`],
+  [Auth], [`GET`], [`/api/v1/auth/me`], [Retorna perfil autenticado (`X-User-Id`).], [`200, 401, 404`],
+
+  [Usuários], [`POST`], [`/api/v1/users`], [Cria novo usuário validando CPF, login e e-mail.], [`201, 400, 404, 409`],
+  [Usuários], [`GET`], [`/api/v1/users`], [Lista usuários públicos (filtro opcional `?username=`).], [`200`],
+  [Usuários], [`GET`], [`/api/v1/users/{id}`], [Consulta perfil público (sem CPF/nascimento).], [`200, 400, 404`],
+  [Usuários], [`GET`], [`/api/v1/users/{id}/profile`], [Consulta perfil completo restrito ao titular.], [`200, 401, 404`],
+  [Usuários], [`PUT`], [`/api/v1/users/{id}`], [Atualiza dados cadastrais e família do usuário.], [`200, 400, 404, 409`],
+  [Usuários], [`DELETE`], [`/api/v1/users/{id}`], [Remove usuário por identificador.], [`204, 404, 500`],
+
+  [Famílias], [`POST`], [`/api/v1/families`], [Cadastra nova família (`T_SOUL_FAMILIA`).], [`201, 400`],
+  [Famílias], [`GET`], [`/api/v1/families`], [Lista todas as famílias cadastradas.], [`200`],
+  [Famílias], [`GET`], [`/api/v1/families/{id}`], [Busca família por ID.], [`200, 404`],
+  [Famílias], [`GET`], [`/api/v1/families/{id}/members`], [Lista usuários vinculados à família.], [`200, 404`],
+  [Famílias], [`PUT`], [`/api/v1/families/{id}`], [Atualiza nome e descrição de parentesco.], [`200, 400, 404`],
+  [Famílias], [`DELETE`], [`/api/v1/families/{id}`], [Exclui família (se não possuir vínculos ativos).], [`204, 404, 500`],
+
+  [Avatares], [`POST`], [`/api/v1/avatars`], [Cria avatar vinculado a usuário existente.], [`201, 400, 404`],
+  [Avatares], [`GET`], [`/api/v1/avatars`], [Lista todos os avatares.], [`200`],
+  [Avatares], [`GET`], [`/api/v1/avatars/user/{userId}`], [Lista avatares pertencentes a um usuário.], [`200`],
+  [Avatares], [`GET`], [`/api/v1/avatars/{id}`], [Consulta detalhes e XP do avatar.], [`200, 404`],
+  [Avatares], [`PUT`], [`/api/v1/avatars/{id}`], [Atualiza nome, visualConfig e personalidade.], [`200, 400, 404`],
+  [Avatares], [`PATCH`], [`/api/v1/avatars/{id}/experience`], [Adiciona XP e recalcula evolução de nível.], [`200, 400, 404`],
+  [Avatares], [`DELETE`], [`/api/v1/avatars/{id}`], [Remove avatar por identificador.], [`204, 404`],
+
+  [Recompensas], [`POST`], [`/api/v1/rewards`], [Cria recompensa no catálogo (`T_SOUL_REWARD`).], [`201, 400`],
+  [Recompensas], [`GET`], [`/api/v1/rewards`], [Lista catálogo de recompensas.], [`200`],
+  [Recompensas], [`GET`], [`/api/v1/rewards/{id}`], [Busca recompensa por ID.], [`200, 404`],
+  [Recompensas], [`PUT`], [`/api/v1/rewards/{id}`], [Atualiza dados e pontuação da recompensa.], [`200, 400, 404`],
+  [Recompensas], [`DELETE`], [`/api/v1/rewards/{id}`], [Exclui recompensa do catálogo.], [`204, 404, 500`],
+
+  [Missões], [`POST`], [`/api/v1/missions`], [Cria missão exigindo >= 1 recompensa prévia.], [`201, 400, 404`],
+  [Missões], [`GET`], [`/api/v1/missions`], [Lista missões (`?activeOnly=` / `?eligibleOnly=`).], [`200`],
+  [Missões], [`GET`], [`/api/v1/missions/{id}`], [Consulta missão e suas recompensas vinculadas.], [`200, 404`],
+  [Missões], [`PUT`], [`/api/v1/missions/{id}`], [Atualiza título, tipo, regras e período.], [`200, 400, 404`],
+  [Missões], [`PATCH`], [`/api/v1/missions/{id}/status`], [Altera status entre `ATIVA` e `INATIVA`.], [`200, 400, 404`],
+  [Missões], [`GET`], [`/api/v1/missions/{id}/rewards`], [Lista recompensas associadas à missão.], [`200, 404`],
+  [Missões], [`POST`], [`/api/v1/missions/{id}/rewards/{rewardId}`], [Associa nova recompensa à missão.], [`201, 404, 409`],
+  [Missões], [`DELETE`], [`/api/v1/missions/{id}/rewards/{rewardId}`], [Remove vínculo (bloqueia se for a última).], [`204, 400, 404`],
+  [Missões], [`DELETE`], [`/api/v1/missions/{id}`], [Remove missão e associações em transação.], [`204, 404, 500`],
+
+  [Participações], [`POST`], [`/api/v1/participations`], [Inscreve usuário em missão elegível.], [`201, 400, 404, 409`],
+  [Participações], [`GET`], [`/api/v1/participations`], [Lista participações (`?userId=` opcional).], [`200`],
+  [Participações], [`GET`], [`/api/v1/participations/{id}`], [Consulta progresso da participação.], [`200, 404`],
+  [Participações], [`PATCH`], [`/api/v1/participations/{id}/progress`], [Atualiza percentual (`0` a `100%`).], [`200, 400, 404`],
+  [Participações], [`POST`], [`/api/v1/participations/{id}/complete`], [Conclui missão e concede recompensas.], [`200, 404, 409`],
+  [Participações], [`DELETE`], [`/api/v1/participations/{id}`], [Cancela/exclui registro de participação.], [`204, 404`],
+
+  [User Rewards], [`POST`], [`/api/v1/user-rewards`], [Concede recompensa avulsa ao usuário.], [`201, 400, 404`],
+  [User Rewards], [`GET`], [`/api/v1/user-rewards`], [Lista conquistas (`?userId=` opcional).], [`200`],
+  [User Rewards], [`GET`], [`/api/v1/user-rewards/{id}`], [Consulta conquista específica.], [`200, 404`],
+  [User Rewards], [`PATCH`], [`/api/v1/user-rewards/{id}/claim`], [Marca recompensa como resgatada (`true`).], [`200, 404, 409`],
+  [User Rewards], [`DELETE`], [`/api/v1/user-rewards/{id}`], [Remove registro de recompensa adquirida.], [`204, 404`],
+
+  [Atividades], [`POST`], [`/api/v1/activities`], [Registra hábito e atualiza `Streak` diário.], [`201, 400, 404`],
+  [Atividades], [`GET`], [`/api/v1/activities`], [Lista atividades (`?userId=` opcional).], [`200`],
+  [Atividades], [`GET`], [`/api/v1/activities/{id}`], [Consulta atividade ecológica por ID.], [`200, 404`],
+  [Atividades], [`DELETE`], [`/api/v1/activities/{id}`], [Remove atividade registrada.], [`204, 404`],
+
+  [Streaks], [`GET`], [`/api/v1/streaks`], [Lista todas as sequências ativas.], [`200`],
+  [Streaks], [`GET`], [`/api/v1/streaks/user/{userId}`], [Lista sequências e recordes de um usuário.], [`200`],
+  [Streaks], [`GET`], [`/api/v1/streaks/{id}`], [Consulta sequência específica por ID.], [`200, 404`],
+
+  [Comunidades], [`POST`], [`/api/v1/communities`], [Cria comunidade com nome único.], [`201, 400, 409`],
+  [Comunidades], [`GET`], [`/api/v1/communities`], [Lista comunidades cadastradas.], [`200`],
+  [Comunidades], [`GET`], [`/api/v1/communities/{id}`], [Consulta comunidade por ID.], [`200, 404`],
+  [Comunidades], [`PUT`], [`/api/v1/communities/{id}`], [Atualiza dados da comunidade.], [`200, 400, 404, 409`],
+  [Comunidades], [`DELETE`], [`/api/v1/communities/{id}`], [Remove comunidade e vínculos.], [`204, 404`],
+  [Comunidades], [`GET`], [`/api/v1/communities/{id}/members`], [Lista usuários membros da comunidade.], [`200, 404`],
+  [Comunidades], [`POST`], [`/api/v1/communities/{id}/members/{userId}`], [Adiciona membro à comunidade.], [`201, 404, 409`],
+  [Comunidades], [`DELETE`], [`/api/v1/communities/{id}/members/{userId}`], [Remove membro da comunidade.], [`204, 404`],
+  [Comunidades], [`GET`], [`/api/v1/communities/{id}/missions`], [Lista desafios vinculados à comunidade.], [`200, 404`],
+  [Comunidades], [`POST`], [`/api/v1/communities/{id}/missions`], [Vincula missão à comunidade com placar.], [`201, 400, 404, 409`],
+  [Comunidades], [`PUT`], [`/api/v1/communities/{id}/missions/{missionId}`], [Atualiza pontuação/status na comunidade.], [`200, 400, 404`],
+  [Comunidades], [`DELETE`], [`/api/v1/communities/{id}/missions/{missionId}`], [Desvincula missão da comunidade.], [`204, 404`],
+
+  [Publicações], [`POST`], [`/api/v1/posts`], [Cria post e inicializa `PostCounter` (1:1).], [`201, 400, 404`],
+  [Publicações], [`GET`], [`/api/v1/posts`], [Lista feed de posts (`?userId=` opcional).], [`200`],
+  [Publicações], [`GET`], [`/api/v1/posts/{id}`], [Consulta publicação com contadores.], [`200, 404`],
+  [Publicações], [`PUT`], [`/api/v1/posts/{id}`], [Edita conteúdo e status da publicação.], [`200, 400, 404`],
+  [Publicações], [`DELETE`], [`/api/v1/posts/{id}`], [Exclui publicação e seus contadores.], [`204, 404`],
+  [Publicações], [`GET`], [`/api/v1/posts/{id}/counters`], [Consulta métricas 1:1 do post.], [`200, 404`],
+  [Publicações], [`POST`], [`/api/v1/posts/{id}/like`], [Incrementa curtidas via evento no servidor.], [`200, 404`],
+  [Publicações], [`POST`], [`/api/v1/posts/{id}/comment`], [Incrementa contagem de comentários.], [`200, 404`],
+  [Publicações], [`POST`], [`/api/v1/posts/{id}/share`], [Incrementa contagem de compartilhamentos.], [`200, 404`],
 )
+#set text(size: 10.5pt)
 
-Na tela inicial, o usuário conhece a proposta do EcoPulse, visualiza o Souly e lê a mensagem de propósito da solução. O botão *Conheça o Souly* leva à apresentação do guia. O botão *Explore as soluções* desloca a página até os cards de soluções. Os links do cabeçalho levam às telas institucionais, de FAQ, equipe e contato.
+#pagebreak()
 
-== 3.2 Tela Sobre o EcoPulse
+// ==================== 4. PROTÓTIPO DE TELAS ====================
+= Protótipo — Prints das telas implementadas
 
+As capturas de tela reais abaixo apresentam o Front-End Web desenvolvido em React e Vite para o ecossistema *EcoPulse / SoulUp*, bem como o fluxo visual suportado pelos endpoints REST (`/api/v1`) e pelo filtro `CorsFilter` implementados no Back-End Java.
+
+== Tela inicial
 #figure(
-  image("prototipo/02-sobre.webp", width: 92%),
-  caption: [Tela de apresentação do propósito, missão, visão e valores — rota `/sobre`.]
+  image("prototipo/01-home.webp", width: 90%),
+  caption: [Tela inicial da plataforma EcoPulse — rota `/`.]
 )
+Apresenta a proposta de valor do EcoPulse, o mascote interativo *Souly* e os três pilares da jornada gamificada (*Aprender*, *Participar* e *Transformar*), conectados no Back-End aos módulos de missões (`/api/v1/missions`), atividades (`/api/v1/activities`) e comunidades (`/api/v1/communities`).
 
-Nesta tela, o usuário entende o problema que a solução pretende abordar. A seção apresenta propósito, missão, visão e valores. O botão *Conheça a equipe* conduz à tela de integrantes, permitindo relacionar a solução às pessoas responsáveis pelo projeto.
-
-== 3.3 Tela Sobre o Souly
-
+== Tela Sobre o EcoPulse
 #figure(
-  image("prototipo/03-sobre-souly.webp", width: 92%),
-  caption: [Tela conceitual do assistente Souly — rota `/sobre-souly`.]
+  image("prototipo/02-sobre.webp", width: 90%),
+  caption: [Apresentação institucional de propósito, missão, visão e valores — rota `/sobre`.]
 )
+Detalha o problema socioambiental abordado no *SoulUp Challenge* e como pequenas atitudes cotidianas geram impacto coletivo mensurável e recompensas reais dentro da plataforma.
 
-O usuário visualiza o Souly e conhece as funcionalidades propostas para o guia interativo. Os cards apresentam três momentos da jornada: descobrir missões, aprender com dicas de consumo e evoluir acompanhando conquistas. O botão *Veja o Souly como guia* direciona para as demonstrações em vídeo.
-
-== 3.4 Tela Souly como guia interativo
-
+== Tela Sobre o Souly
 #figure(
-  image("prototipo/04-souly-como-guia.webp", width: 92%),
-  caption: [Tela com demonstrações em vídeo do Souly — rota `/souly-como-guia`.]
+  image("prototipo/03-sobre-souly.webp", width: 90%),
+  caption: [Apresentação do avatar e guia Souly — rota `/sobre-souly`.]
 )
+Explica a dinâmica de acompanhamento do avatar *Souly* (arara-azul), cuja evolução de nível, experiência (`XP`), personalidade e configuração visual são gerenciadas pelos endpoints de `/api/v1/avatars`.
 
-O usuário pode reproduzir, pausar e controlar os vídeos demonstrativos. A primeira demonstração apresenta orientação de navegação e a segunda apresenta uma consulta conceitual de recompensas. Os vídeos ilustram o comportamento desejado, mas não representam uma integração real com o banco ou com inteligência artificial nesta versão.
-
-== 3.5 Tela de integrantes
-
+== Tela Souly como guia interativo
 #figure(
-  image("prototipo/05-integrantes.webp", width: 92%),
-  caption: [Tela de apresentação da equipe — rota `/integrantes`.]
+  image("prototipo/04-souly-como-guia.webp", width: 90%),
+  caption: [Demonstrações da jornada mobile/web de missões e conquistas — rota `/souly-como-guia`.]
 )
+Demonstra a experiência do usuário ao consultar desafios ambientais, acompanhar pontuação e visualizar recompensas conquistadas — operações sustentadas na API por `/api/v1/participations` e `/api/v1/user-rewards`.
 
-Nesta tela, o usuário consulta os integrantes do projeto, seus RMs e seus perfis profissionais. Os links *GitHub* e *LinkedIn* abrem as páginas externas correspondentes. A tela reforça a autoria coletiva da solução e complementa as informações apresentadas na capa desta documentação.
-
-== 3.6 Tela de perguntas frequentes
-
+== Tela de integrantes
 #figure(
-  image("prototipo/06-faq.webp", width: 92%),
-  caption: [Tela de perguntas frequentes com respostas expansíveis — rota `/faq`.]
+  image("prototipo/05-integrantes.webp", width: 90%),
+  caption: [Tela de integrantes da equipe EcoPulse — rota `/integrantes`.]
 )
+Exibe os cinco integrantes responsáveis pela arquitetura e desenvolvimento do projeto na FIAP, com seus respectivos RMs e links diretos para GitHub e LinkedIn.
 
-O usuário seleciona uma pergunta para abrir ou fechar sua resposta. O componente usa o padrão de acordeão para concentrar informações sobre pontos, benefícios, Souly, inteligência artificial e limitações do protótipo. O botão *Ir para contato* conduz à tela de formulário.
-
-== 3.7 Tela de contato
-
+== Tela de perguntas frequentes (FAQ)
 #figure(
-  image("prototipo/07-contato.webp", width: 92%),
-  caption: [Tela de contato e validação demonstrativa — rota `/contato`.]
+  image("prototipo/06-faq.webp", width: 90%),
+  caption: [Componente expansível de dúvidas frequentes — rota `/faq`.]
 )
+Organiza em acordeões interativos as principais dúvidas sobre conversão de pontos, funcionamento das missões sustentáveis, comunidades e recompensas.
 
-O usuário preenche nome, e-mail, telefone e mensagem usando dados fictícios. O botão *Testar preenchimento* executa a validação básica do formulário. O protótipo informa que os dados não são enviados nem armazenados, portanto esta tela representa uma experiência planejada e não um canal de suporte ativo.
+== Tela de contato
+#figure(
+  image("prototipo/07-contato.webp", width: 90%),
+  caption: [Formulário validado de atendimento e contato — rota `/contato`.]
+)
+Apresenta os canais institucionais da equipe e formulário com validação de campos no cliente para envio de dúvidas e sugestões.
 
-= 4. Arquitetura da solução
+#pagebreak()
 
-A arquitetura usa camadas com responsabilidades definidas.
+// ==================== 5. ARQUITETURA E BOAS PRÁTICAS ====================
+= Arquitetura da solução e boas práticas
+
+O projeto segue os princípios de *Domain Driven Design (DDD)* em camadas bem definidas sob o pacote `br.com.EcoPulse`, aplicando os padrões *DAO*, *BO/Service*, *Connection Factory*, *DTO*, *Resource REST* e *Filter*:
 
 #table(
-  columns: (3.2cm, 8.8cm),
+  columns: (3.8cm, 12.8cm),
   inset: 6pt,
-  fill: (x, y) => if y == 0 { report-accent.lighten(70%) },
-  [*Camada*], [*Responsabilidade*],
-  [Domínio], [Entidades `User`, `Avatar`, `Mission` e demais classes de negócio.],
-  [Service], [Validação, normalização, orquestração e aplicação das regras de uso.],
-  [DAO], [Execução de Create, Read, Update e Delete com JDBC Oracle.],
-  [Repository], [Fachadas específicas e suporte a repositório genérico.],
-  [Controller], [Ponto de entrada das operações utilizadas pela interface.],
-  [Interface], [Menus, leitura de entradas e apresentação de mensagens.],
-  [Configuração], [Conexão, criação do schema e limpeza dos registros.],
-  [Testes], [Testes JUnit das regras de domínio e teste manual do CRUD.],
+  fill: (x, y) => if y == 0 { report-accent.lighten(75%) },
+  [*Camada / Pacote*], [*Responsabilidade no Projeto*],
+  [`domain` (Modelo)], [16 entidades de domínio (`User`, `Family`, `Avatar`, `Mission`, `Reward`, `UserMission`, `UserReward`, `Activity`, `Streak`, `Community`, `UserCommunity`, `MissionCommunity`, `Post`, `PostCounter`, `ConversationHistory`) com validações e regras encapsuladas.],
+  [`repository` e `dao`], [Interface genérica `GenericRepository`, repositórios e DAOs JDBC concretos com SQL parametrizado (`PreparedStatement`) mapeando todas as tabelas `T_SOUL_*`.],
+  [`service` (BO)], [Orquestração de regras de negócio, unicidade cadastral, cálculo de `Streak`, concessão automática de recompensas e transações atômicas via `ConnectionFactory.executeInTransaction`.],
+  [`resource` e `dto`], [13 controllers REST (`/api/v1/*`) seguindo verbos e códigos HTTP semânticos, desacoplados do modelo interno por Records DTO com Bean Validation (`@Valid`).],
+  [`config` e `security`], [`ConnectionFactory` externalizada por variáveis de ambiente, `CorsFilter` explícito para integração Front-End, `OpenApiConfig` (Swagger) e `PasswordHasher` (BCrypt).],
+  [`exception`], [Hierarquia `EcoPulseException` (`DomainValidationException`, `ResourceNotFoundException`, `BusinessConflictException`, `AuthenticationException`, `PersistenceException`) tratada globalmente em `GlobalExceptionHandler`.],
+  [`controller` / `interfaces`], [Camada de compatibilidade preservada para execução opcional via console interativo (`Exibition`).],
 )
 
-= 5. Diagrama do banco de dados
+// ==================== 6. MODELO ENTIDADE-RELACIONAMENTO ====================
+= Modelo de Entidade-Relacionamento (MER)
 
-O banco é composto por tabelas de usuários, atividades, avatares, missões, recompensas, desafios e associações. As chaves primárias são identificadores numéricos gerados pelo Oracle. As chaves estrangeiras preservam as relações entre usuário, avatar, missão e recompensa.
+O banco de dados relacional no Oracle utiliza o padrão consolidado de nomenclatura `T_SOUL_*` composto por *16 tabelas* com integridade referencial completa (`PK`, `FK`, `UK` e `CHECK`). A tabela central `T_SOUL_USUARIO` conecta-se opcionalmente a `T_SOUL_FAMILIA` (`N:1`) e origina os vínculos com avatares (`T_SOUL_AVATAR`), atividades (`T_SOUL_ACTIVITY`), sequências (`T_SOUL_STREAK`), participações em desafios (`T_SOUL_USUARIO_DESAFIO`), recompensas adquiridas (`T_SOUL_USUARIO_REWARD`), comunidades (`T_SOUL_USUARIO_COMUN`), publicações (`T_SOUL_POSTS`, ligada `1:1` a `T_SOUL_CONTADORES`) e histórico estrutural (`T_SOUL_HISTORICO_CONVERSA`). Os desafios (`T_SOUL_DESAFIO`) associam-se às recompensas (`T_SOUL_REWARD`) por `T_SOUL_DESAFIO_REWARD` e às comunidades por `T_SOUL_DESAFIO_COMUN`.
 
-A tabela `T_CHLNG_USERS` é a principal referência dos registros de atividades, avatares, sequências, missões do usuário e recompensas do usuário. `T_CHLNG_MISSIONS` pode referenciar uma recompensa. As tabelas de associação registram participações e vínculos entre os elementos do domínio.
+#page(flipped: true, margin: (top: 2.0cm, bottom: 1.8cm, x: 1.6cm))[
+  == Diagrama Entidade-Relacionamento (`T_SOUL_*`)
+  #v(0.2em)
+  #figure(
+    image("diagrama-er.png", width: 100%, height: 84%, fit: "contain"),
+    caption: [Modelo Entidade-Relacionamento (MER) consolidado das 16 tabelas `T_SOUL_*` no Oracle Database.]
+  )
+]
 
-#figure(
-  image("diagrama-er.png", width: 100%),
-  caption: [Modelo entidade-relacionamento do schema Oracle.]
-)
+// ==================== 7. DIAGRAMA DE CLASSES ATUALIZADO ====================
+#page(flipped: true, margin: (top: 2.0cm, bottom: 1.8cm, x: 1.6cm))[
+  = Diagrama de Classes atualizado
 
-#pagebreak()
+  Os diagramas a seguir refletem fielmente o código-fonte Java entregue na 4ª Sprint. O primeiro detalha todas as classes da camada `domain` (atributos, métodos de negócio, composições e multiplicidades) e a hierarquia de herança das exceções (`EcoPulseException`). O segundo apresenta a integração entre as camadas `resource`, `service` (BO), `repository/dao`, `CorsFilter` e `ConnectionFactory`.
 
-= 6. Diagrama de classes
+  #figure(
+    image("diagrama-classes.png", width: 100%, height: 74%, fit: "contain"),
+    caption: [Diagrama de classes da camada de Domínio (`br.com.EcoPulse.domain`) e herança de Exceções (`br.com.EcoPulse.exception`).]
+  )
+]
 
-O diagrama apresenta as entidades com seus atributos e regras de negócio, os services que as orquestram, os DAOs responsáveis pela persistência e a `ConnectionFactory` utilizada pelos DAOs. A dependência entre `AvatarService` e `UserDao` representa a validação do proprietário antes do cadastro de um avatar.
+#page(flipped: true, margin: (top: 2.0cm, bottom: 1.8cm, x: 1.6cm))[
+  == Diagrama de Classes das Camadas Resource, BO/Service, DAO e Configuração
+  #v(0.2em)
+  #figure(
+    image("diagrama-arquitetura-classes.png", width: 100%, height: 83%, fit: "contain"),
+    caption: [Diagrama de classes representando a comunicação entre Resources REST, Services (BO), DAOs/Repositories, `CorsFilter` e `ConnectionFactory`.]
+  )
+]
 
-#figure(
-  image("diagrama-classes.png", width: 100%),
-  caption: [Diagrama de classes da estrutura atual da aplicação.]
-)
+// ==================== 8. PROCEDIMENTOS PARA RODAR A APLICAÇÃO ====================
+= Procedimentos para rodar a aplicação
 
-#pagebreak()
-
-= 7. Ferramentas e versões necessárias
-
-A execução recomendada utiliza IntelliJ IDEA por sua integração com projetos Maven, mas o projeto também pode ser importado em Eclipse, NetBeans ou VS Code com suporte a Java e Maven.
+== Ferramentas e versões necessárias
 
 #table(
-  columns: (5cm, 7cm),
+  columns: (4.8cm, 11.8cm),
   inset: 6pt,
-  fill: (x, y) => if y == 0 { report-accent.lighten(70%) },
-  [*Ferramenta ou componente*], [*Versão ou requisito*],
-  [Java Development Kit], [JDK 21 ou superior.],
-  [Maven], [Versão compatível com Java 21 e acesso ao Maven Central.],
-  [IntelliJ IDEA], [Versão atual com suporte a Maven; Eclipse, NetBeans e VS Code também são alternativas.],
-  [Oracle Database FIAP], [Serviço `ORCL` em `oracle.fiap.com.br:1521`.],
-  [Driver JDBC], [`com.oracle.database.jdbc:ojdbc8:21.1.0.0`.],
-  [JUnit], [JUnit Jupiter 5.10.2, executado pelo Maven Surefire.],
+  fill: (x, y) => if y == 0 { report-accent.lighten(75%) },
+  [*Ferramenta / Componente*], [*Versão e Finalidade*],
+  [Java Development Kit (JDK)], [*JDK 21* (LTS) — compilação e execução da aplicação.],
+  [Apache Maven], [*Maven 3.9+* — gerenciamento de dependências, testes e empacotamento JAR.],
+  [Spring Boot], [*3.3.5* (`spring-boot-starter-web`, `validation`, `spring-security-crypto`).],
+  [IDE Recomendada], [*IntelliJ IDEA* (compatível também com *Eclipse*, *NetBeans* e *VS Code* com extensão Java/Maven).],
+  [Banco de Dados Principal], [*Oracle Database FIAP* (`jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL`) via driver `ojdbc11:23.5.0.24.07`.],
+  [Banco Auxiliar Local/Testes], [*H2 Database* (em memória com `MODE=Oracle`) para execução rápida com perfil `dev` ou `test`.],
+  [Container e Nuvem], [*Docker* (build multi-stage) e plataforma *Render* para deploy em produção.],
 )
 
-= 8. Procedimentos para importar e executar
+== Como importar o projeto na IDE
 
-== 8.1 Importação no IntelliJ IDEA
+1. Extraia ou clone o repositório `ChallengeEcopulseMaven` em uma pasta local.
+2. No *IntelliJ IDEA*, clique em *File -> Open* e selecione a pasta raiz do projeto (onde está localizado o arquivo `pom.xml`). *Em Eclipse ou NetBeans*, utilize *Import -> Existing Maven Projects* apontando para a mesma raiz; no *VS Code*, abra a pasta raiz com o *Extension Pack for Java* instalado.
+3. No painel lateral do Maven, clique em *Reload All Maven Projects* para baixar as dependências e configurar o SDK do projeto como *Java 21*.
 
-Abra a pasta raiz do projeto, que contém `pom.xml`. Não abra somente a pasta `src`. No painel Maven, selecione *Reload All Maven Projects*. O IntelliJ deverá reconhecer automaticamente `src/main/java` como código de produção e `src/test/java` como código de teste.
+== Configuração das variáveis de ambiente (Oracle FIAP)
 
-Confirme se a dependência `ojdbc8` foi resolvida no classpath. Se o projeto for aberto em uma IDE diferente, importe-o como um projeto Maven existente a partir do arquivo `pom.xml`.
+Por boas práticas de segurança, as credenciais do banco não ficam fixas no código-fonte. Crie um arquivo `.env` na raiz (ou configure em *Run/Debug Configurations -> Environment variables* na IDE) com os parâmetros abaixo:
 
-== 8.2 Configuração Oracle FIAP
-
-Antes da execução do menu ou do teste manual, confirme o acesso à instância Oracle disponibilizada pela FIAP. O projeto não utiliza um Oracle local com `XEPDB1`; ele utiliza o host remoto e o SID `ORCL` definidos em `ConnectionFactory.java`:
-
-```text
-URL: jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
-Usuário: rm570492
-Senha: 030307
-Driver: oracle.jdbc.OracleDriver
-Serviço/SID: ORCL
+```env
+PORT=8080
+DB_URL=jdbc:oracle:thin:@oracle.fiap.com.br:1521:ORCL
+DB_USER=rm570492
+DB_PASSWORD=<SUA_SENHA_ORACLE_FIAP>
+DB_DRIVER=oracle.jdbc.OracleDriver
+DB_AUTO_INIT=true
+CORS_ALLOWED_ORIGINS=*
 ```
 
-Na primeira conexão, a aplicação tenta criar as tabelas ausentes no schema do usuário `rm570492`. O usuário precisa possuir permissões para criar e manipular as tabelas. A senha é documentada porque está definida diretamente no código-fonte conforme o requisito da entrega; em um ambiente real, ela deveria ser substituída por uma variável de ambiente ou um gerenciador de segredos.
+Na inicialização, a `ConnectionFactory` verifica o schema e cria automaticamente todas as 16 tabelas `T_SOUL_*` caso ainda não existam.
 
-== 8.3 Compilação
+== Passo a passo para compilar e executar localmente
 
-Na raiz do projeto, execute:
-
+*Opção 1 — Executar conectado ao Oracle da FIAP:*
+1. Com as variáveis `DB_URL`, `DB_USER` e `DB_PASSWORD` definidas no terminal ou na IDE, gere o pacote executável na raiz do projeto:
 ```bash
-mvn clean compile
+mvn clean package -DskipTests
 ```
-
-== 8.4 Execução do menu interativo
-
-O menu executável está em:
-
-```text
-src/main/java/br/com/EcoPulse/interfaces/Exibition.java
-```
-
-Sua classe principal é `br.com.EcoPulse.interfaces.Exibition`. Para iniciar com Maven:
-
+2. Inicie a aplicação Spring Boot pela classe `br.com.EcoPulse.EcoPulseApplication` na IDE ou via terminal:
 ```bash
-mvn compile exec:java \
-  -Dexec.mainClass=br.com.EcoPulse.interfaces.Exibition
+java -jar target/ecopulse-api.jar
 ```
 
-Também é possível abrir `Exibition.java` na IDE e executar o função `main`. O menu principal oferece gerenciamento de usuários, avatares, missões e a opção de saída.
+*Opção 2 — Executar imediatamente sem rede Oracle (perfil `dev` com H2 em modo Oracle):*
+```bash
+java -jar target/ecopulse-api.jar --spring.profiles.active=dev
+```
 
-== 8.5 Execução dos testes automatizados
+*Validação local após iniciar o servidor (`http://localhost:8080`):*
+- *Healthcheck:* `http://localhost:8080/api/v1/health`
+- *Documentação e testes interativos (Swagger UI):* `http://localhost:8080/swagger-ui.html`
+- *OpenAPI JSON:* `http://localhost:8080/api-docs`
 
-Os testes automatizados estão em `src/test/java/br/com/EcoPulse/test`. Eles verificam regras de negócio, encapsulamento, estados, evolução, validações e lançamento de exceções. Não precisam de Oracle porque não executam operações JDBC.
+== Acesso em Produção (Deploy Docker no Render)
 
-Execute a suíte completa com:
+A aplicação encontra-se implantada em container Docker (`Dockerfile` multi-stage com `maven:3.9.9-eclipse-temurin-21` e runtime `eclipse-temurin:21-jre-alpine`) na plataforma *Render*:
+- *URL Base da API em Produção:* https://challengeecopulsemaven.onrender.com
+- *Healthcheck Público:* https://challengeecopulsemaven.onrender.com/api/v1/health
+- *Swagger UI em Produção:* https://challengeecopulsemaven.onrender.com/swagger-ui.html
+
+== Execução dos testes automatizados
+
+Para executar os testes unitários de domínio (`UserTest`, `AvatarTest`, `MissionTest`) e o teste integrado REST (`EcoPulseApiIntegrationTest` com `MockMvc` sobre H2 em modo Oracle):
 
 ```bash
 mvn clean test
 ```
 
-Para executar uma classe individual:
+// ==================== 9. REFERÊNCIAS ====================
+= Referências
 
-```bash
-mvn -Dtest=UserTest test
-mvn -Dtest=AvatarTest test
-mvn -Dtest=MissionTest test
-```
+[1] Spring Framework / Spring Boot 3.3 Reference Documentation: https://docs.spring.io/spring-boot/index.html
 
-Os relatórios são gerados em `target/surefire-reports/`.
+[2] Oracle Database JDBC Developer's Guide (`ojdbc11`): https://docs.oracle.com/en/database/oracle/oracle-database/23/jjdbc/
 
-== 8.6 Execução do teste manual de CRUD
+[3] Springdoc OpenAPI v2 (Swagger UI para Spring Boot 3): https://springdoc.org/
 
-O teste manual exigido na entrega está em:
+[4] Render Documentation — Deploying Docker Web Services: https://render.com/docs/docker
 
-```text
-src/test/java/br/com/EcoPulse/test/UserCrudTest.java
-```
-
-Ele possui `main` e simula criação, leitura, atualização e exclusão de um usuário. Como está em `src/test/java`, execute com o classpath de testes:
-
-```bash
-mvn test-compile exec:java \
-  -Dexec.mainClass=br.com.EcoPulse.test.UserCrudTest \
-  -Dexec.classpathScope=test
-```
-
-Esse teste exige Oracle ativo. A saída esperada confirma `CREATE`, `READ`, `UPDATE`, `DELETE` e a mensagem de sucesso do CRUD.
-
-= 9. Limites e observações
-
-A aplicação é uma solução de console para fins acadêmicos e de demonstração de arquitetura Java. Ela não substitui um sistema de produção com autenticação, controle de acesso, gestão segura de segredos, migrações versionadas, observabilidade ou API externa.
-
-As credenciais Oracle estão inseridas em código porque esse é um requisito da entrega. Em um ambiente real, elas deveriam ser obtidas por variáveis de ambiente ou um gerenciador de segredos. A limpeza automática dos registros ocorre somente quando a opção `0` é escolhida no menu principal; ela não deve ser acionada acidentalmente em um banco com dados que precisem ser preservados.
-
-= 10. Referências
-
-[1] Maven Project, documentação oficial de build e gerenciamento de dependências: https://maven.apache.org/ "Apache Maven Project"
-
-[2] Oracle, documentação do JDBC: https://docs.oracle.com/en/database/oracle/oracle-database/21/jjdbc/ "Oracle Database JDBC Developer's Guide"
-
-[3] JUnit, documentação oficial do JUnit 5: https://junit.org/junit5/docs/current/user-guide/ "JUnit 5 User Guide"
+[5] JUnit 5 User Guide: https://junit.org/junit5/docs/current/user-guide/

@@ -1,0 +1,165 @@
+classDiagram
+    direction TB
+
+    class Filter {
+        <<interface>>
+        +doFilter(ServletRequest, ServletResponse, FilterChain) void
+    }
+
+    class CorsFilter {
+        -String allowedOrigins
+        +doFilter(ServletRequest, ServletResponse, FilterChain) void
+    }
+
+    class GlobalExceptionHandler {
+        +handleValidation(DomainValidationException, HttpServletRequest) ResponseEntity
+        +handleAuth(AuthenticationException, HttpServletRequest) ResponseEntity
+        +handleNotFound(ResourceNotFoundException, HttpServletRequest) ResponseEntity
+        +handleConflict(BusinessConflictException, HttpServletRequest) ResponseEntity
+        +handlePersistence(PersistenceException, HttpServletRequest) ResponseEntity
+    }
+
+    class AuthResource {
+        -AuthService authService
+        +register(RegisterRequest) AuthResponse
+        +login(LoginRequest) AuthResponse
+        +me(Long) UserDetailResponse
+    }
+
+    class UserResource {
+        -UserService userService
+        +create(CreateUserRequest) UserDetailResponse
+        +list(String) List~UserPublicResponse~
+        +getPublicById(Long) UserPublicResponse
+        +getPrivateProfile(Long, Long) UserDetailResponse
+        +update(Long, UpdateUserRequest) UserPublicResponse
+        +delete(Long) void
+    }
+
+    class MissionResource {
+        -MissionService missionService
+        +create(CreateMissionRequest) MissionResponse
+        +list(Boolean, Boolean) List~MissionResponse~
+        +getById(Long) MissionResponse
+        +update(Long, UpdateMissionRequest) MissionResponse
+        +changeStatus(Long, MissionStatusRequest) MissionResponse
+        +addReward(Long, Long) List~RewardResponse~
+        +removeReward(Long, Long) void
+        +delete(Long) void
+    }
+
+    class UserMissionResource {
+        -UserMissionService userMissionService
+        +assign(AssignMissionRequest) ParticipationResponse
+        +updateProgress(Long, ProgressUpdateRequest) ParticipationResponse
+        +complete(Long) ParticipationResponse
+        +delete(Long) void
+    }
+
+    class AuthService {
+        -UserService userService
+        -PasswordHasher passwordHasher
+        +register(User, String) User
+        +authenticate(String, String) User
+    }
+
+    class UserService {
+        -UserDao userDao
+        -FamilyDao familyDao
+        -PasswordHasher passwordHasher
+        +create(User, String) User
+        +findById(Long) Optional~User~
+        +update(User) User
+        +delete(Long) boolean
+    }
+
+    class MissionService {
+        -MissionDao dao
+        -RewardDao rewardDao
+        -MissionRewardDao missionRewardDao
+        +create(Mission, List~Long~) Mission
+        +getEligible() List~Mission~
+        +addRewardToMission(Long, Long) List~Reward~
+        +removeRewardFromMission(Long, Long) void
+        +delete(Long) boolean
+    }
+
+    class UserMissionService {
+        -UserMissionDao userMissionDao
+        -MissionDao missionDao
+        -MissionRewardDao missionRewardDao
+        -UserRewardDao userRewardDao
+        +assign(Long, Long) UserMission
+        +updateProgress(Long, int) UserMission
+        +complete(Long) UserMission
+    }
+
+    class GenericRepository {
+        <<interface>>
+        +save(Object) Object
+        +findById(Object) Optional
+        +findAll() List
+        +deleteById(Object) boolean
+    }
+
+    class UserRepository {
+        -UserDao userDao
+    }
+
+    class UserDao {
+        +create(User) User
+        +findById(Long) Optional~User~
+        +findByLogin(String) Optional~User~
+        +findAll() List~User~
+        +update(User) User
+        +deleteById(Long) boolean
+    }
+
+    class MissionDao {
+        +create(Mission) Mission
+        +findById(Long) Optional~Mission~
+        +findAll(boolean) List~Mission~
+        +update(Mission) Mission
+        +deleteById(Long) boolean
+    }
+
+    class RewardDao {
+        +create(Reward) Reward
+        +findById(Long) Optional~Reward~
+        +findByMissionId(Long) List~Reward~
+    }
+
+    class UserMissionDao {
+        +create(UserMission) UserMission
+        +findById(Long) Optional~UserMission~
+        +update(UserMission) UserMission
+    }
+
+    class ConnectionFactory {
+        -ThreadLocal~Connection~ TRANSACTION_CONTEXT
+        +getConnection() Connection
+        +executeInTransaction(Supplier) Object
+        +initializeDatabase() void
+        +clearData() void
+    }
+
+    Filter <|.. CorsFilter
+    GenericRepository <|.. UserRepository
+    UserRepository --> UserDao : delega
+
+    AuthResource --> AuthService : chama
+    UserResource --> UserService : chama
+    MissionResource --> MissionService : chama
+    UserMissionResource --> UserMissionService : chama
+
+    AuthService --> UserService : usa
+    UserService --> UserDao : usa
+    MissionService --> MissionDao : usa
+    MissionService --> RewardDao : valida recompensa
+    UserMissionService --> UserMissionDao : usa
+    UserMissionService --> MissionDao : valida elegibilidade
+
+    UserDao ..> ConnectionFactory : JDBC
+    MissionDao ..> ConnectionFactory : JDBC
+    RewardDao ..> ConnectionFactory : JDBC
+    UserMissionDao ..> ConnectionFactory : JDBC

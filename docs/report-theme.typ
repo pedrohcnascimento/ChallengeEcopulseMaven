@@ -1,22 +1,19 @@
-// Shared visual theme for the skill-owned report entries.
+// Shared visual theme for the EcoPulse Technical Documentation report.
 // Owns page defaults, typography, paragraph rhythm, headings, code blocks,
 // links, figures, and the optional running header.
 
 #let report-accent = rgb("#1a5fb4")
 
-// Relative rhythm values use B = body-size.
-// report = user-selected R4 chapter-emphasis profile.
-// longform = user-selected T1 no-indent longform profile.
 #let report-rhythms = (
   report: (
     paragraph-gap: 0.84,
     leading: 0.87,
     first-line-indent: none,
     levels: (
-      h1: (size: 1.55, before: 2.38, after: 1.04, weight: 700),
-      h2: (size: 1.30, before: 1.64, after: 0.92, weight: 700),
-      h3: (size: 1.13, before: 1.13, after: 0.86, weight: 650),
-      h4: (size: 1.00, before: 0.96, after: 0.84, weight: 650),
+      h1: (size: 1.55, before: 2.10, after: 0.95, weight: 700),
+      h2: (size: 1.28, before: 1.50, after: 0.82, weight: 700),
+      h3: (size: 1.12, before: 1.10, after: 0.75, weight: 650),
+      h4: (size: 1.00, before: 0.90, after: 0.70, weight: 650),
     ),
   ),
   longform: (
@@ -36,7 +33,7 @@
   title: none,
   author: none,
   rhythm: "report",
-  body-size: 11pt,
+  body-size: 10.5pt,
   first-line-indent: none,
   paragraph-spacing: none,
   running-header: false,
@@ -64,7 +61,7 @@
 
   set page(
     paper: "a4",
-    margin: (top: 2.5cm, bottom: 2.5cm, x: 2.2cm),
+    margin: (top: 2.4cm, bottom: 2.4cm, x: 2.0cm),
     numbering: "1",
     header: if running-header {
       context {
@@ -85,10 +82,10 @@
   )
 
   set text(
-    font: ("Libertinus Serif", "Noto Serif CJK SC"),
+    font: ("Libertinus Serif", "Georgia", "Times New Roman"),
     size: body-size,
-    lang: "zh",
-    region: "cn",
+    lang: "pt",
+    region: "br",
   )
 
   set par(
@@ -104,7 +101,7 @@
 
   set heading(numbering: "1.1")
   show heading: set text(
-    font: ("Noto Sans", "Noto Sans CJK SC"),
+    font: ("Segoe UI", "Arial", "Libertinus Serif"),
     fill: report-accent,
   )
 
@@ -142,10 +139,11 @@
 
   show raw.where(block: true): it => block(
     fill: luma(246),
-    inset: 10pt,
+    stroke: 0.5pt + luma(220),
+    inset: 9pt,
     radius: 4pt,
     width: 100%,
-    text(size: 9pt, it),
+    text(size: 8.8pt, it),
   )
   show link: set text(fill: report-accent)
   show figure: set block(breakable: true)

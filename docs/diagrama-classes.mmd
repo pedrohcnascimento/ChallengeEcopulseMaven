@@ -1,4 +1,13 @@
 classDiagram
+    direction TB
+
+    class Family {
+        -Long id
+        -String name
+        -String relationshipDescription
+        +validate() void
+    }
+
     class User {
         -Long id
         -String externalId
@@ -17,12 +26,9 @@ classDiagram
         +hasCompleteProfile() boolean
         +isValidEmail() boolean
         +isValidCpf() boolean
+        +updateProfile(String, String) void
     }
-    class Family {
-        -Long id
-        -String name
-        -String relationshipDescription
-    }
+
     class Avatar {
         -Long id
         -Long userId
@@ -33,10 +39,12 @@ classDiagram
         -Long experiencePoints
         -Instant createdAt
         -Instant updatedAt
+        +getDisplayName() String
         +isEvolved() boolean
         +getExperienceToNextLevel() long
         +addExperience(long) void
     }
+
     class Mission {
         -Long id
         -String title
@@ -49,9 +57,11 @@ classDiagram
         -Instant createdAt
         -Instant updatedAt
         +isEligible(Instant) boolean
+        +validateInvariants() void
         +activate() void
         +deactivate() void
     }
+
     class Reward {
         -Long id
         -String name
@@ -59,11 +69,14 @@ classDiagram
         -String type
         -Integer value
         -String details
+        +validate() void
     }
+
     class MissionReward {
         -Long missionId
         -Long rewardId
     }
+
     class UserMission {
         -Long id
         -Long userId
@@ -72,7 +85,10 @@ classDiagram
         -Integer progress
         -Instant completedAt
         -Instant assignedAt
+        +updateProgress(int) void
+        +markCompleted() void
     }
+
     class UserReward {
         -Long id
         -Long userId
@@ -80,14 +96,18 @@ classDiagram
         -Long sourceMissionId
         -Instant acquiredAt
         -Boolean isClaimed
+        +claim() void
     }
+
     class Activity {
         -Long id
         -Long userId
         -String type
         -Instant timestamp
         -String metadata
+        +validate() void
     }
+
     class Streak {
         -Long id
         -Long userId
@@ -95,24 +115,33 @@ classDiagram
         -Integer currentCount
         -Integer highestCount
         -Instant lastActivityAt
+        -Instant createdAt
+        -Instant updatedAt
+        +registerActivity(Instant) void
     }
+
     class Community {
         -Long id
         -String name
         -String description
         -String communityType
         -Instant createdAt
+        +validate() void
     }
+
     class UserCommunity {
         -Long userId
         -Long communityId
     }
+
     class MissionCommunity {
         -Long missionId
         -Long communityId
         -Integer score
         -String status
+        +validate() void
     }
+
     class Post {
         -Long id
         -Long userId
@@ -120,29 +149,47 @@ classDiagram
         -String status
         -Instant createdAt
         -Instant updatedAt
+        +validate() void
     }
+
     class PostCounter {
         -Long id
         -Long postId
         -Integer likeCount
         -Integer commentCount
         -Integer shareCount
+        +incrementLike() void
+        +incrementComment() void
+        +incrementShare() void
     }
+
     class ConversationHistory {
         -Long id
         -Long userId
         -String content
         -Instant sentAt
         -String recipient
+        +validate() void
     }
-    class CorsFilter {
-        +doFilter(ServletRequest, ServletResponse, FilterChain) void
+
+    class EcoPulseException {
+        <<RuntimeException>>
+        +EcoPulseException(String)
     }
-    class ConnectionFactory {
-        +getConnection() Connection
-        +executeInTransaction(Supplier) T
-        +initializeDatabase() void
-        +clearData() void
+    class DomainValidationException {
+        +DomainValidationException(String)
+    }
+    class ResourceNotFoundException {
+        +ResourceNotFoundException(String)
+    }
+    class BusinessConflictException {
+        +BusinessConflictException(String)
+    }
+    class AuthenticationException {
+        +AuthenticationException(String)
+    }
+    class PersistenceException {
+        +PersistenceException(String, Throwable)
     }
 
     Family "0..1" <-- "0..*" User : familyId
@@ -150,15 +197,22 @@ classDiagram
     User "1" <-- "0..*" Activity : userId
     User "1" <-- "0..*" Streak : userId
     User "1" <-- "0..*" Post : userId
-    Post "1" <-- "1" PostCounter : postId
+    Post "1" *-- "1" PostCounter : postId
     User "1" <-- "0..*" ConversationHistory : userId
-    Mission "1" <-- "1..*" MissionReward : missionId
+    Mission "1" *-- "1..*" MissionReward : missionId
     Reward "1" <-- "0..*" MissionReward : rewardId
     User "1" <-- "0..*" UserMission : userId
     Mission "1" <-- "0..*" UserMission : missionId
     User "1" <-- "0..*" UserReward : userId
     Reward "1" <-- "0..*" UserReward : rewardId
+    Mission "0..1" <-- "0..*" UserReward : sourceMissionId
     User "1" <-- "0..*" UserCommunity : userId
     Community "1" <-- "0..*" UserCommunity : communityId
     Mission "1" <-- "0..*" MissionCommunity : missionId
     Community "1" <-- "0..*" MissionCommunity : communityId
+
+    EcoPulseException <|-- DomainValidationException
+    EcoPulseException <|-- ResourceNotFoundException
+    EcoPulseException <|-- BusinessConflictException
+    EcoPulseException <|-- AuthenticationException
+    EcoPulseException <|-- PersistenceException
