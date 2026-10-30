@@ -8,6 +8,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     public UserController() { ConnectionFactory.initializeDatabase(); this.userService = new UserService(); }
+    public User createUser(User user, String rawPassword) { return userService.create(user, rawPassword); }
     public User createUser(User user) { return userService.create(user); }
     public List<User> listUsers() { return userService.getAll(); }
     public List<User> searchUsers(String username) { return userService.searchByUsername(username); }

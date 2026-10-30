@@ -24,16 +24,22 @@ public final class Menus {
     }
     public static void showAvatarMenu() {
         System.out.println(Texts.AVATAR_MENU_TITLE);
-        System.out.println(Texts.AVATAR_CREATE); System.out.println(Texts.AVATAR_LIST);
-        System.out.println(Texts.AVATAR_EXPERIENCE); System.out.println(Texts.AVATAR_INTERACTION);
-        System.out.println(Texts.AVATAR_DELETE); System.out.println(Texts.BACK);
+        System.out.println(Texts.AVATAR_CREATE);
+        System.out.println(Texts.AVATAR_LIST);
+        System.out.println(Texts.AVATAR_EXPERIENCE);
+        System.out.println(Texts.AVATAR_DELETE);
+        System.out.println(Texts.BACK);
         System.out.print("Escolha uma opção: ");
     }
     public static void showMissionMenu() {
         System.out.println(Texts.MISSION_MENU_TITLE);
-        System.out.println(Texts.MISSION_CREATE); System.out.println(Texts.MISSION_LIST);
-        System.out.println(Texts.MISSION_ACTIVE); System.out.println(Texts.MISSION_UPDATE);
-        System.out.println(Texts.MISSION_STATUS); System.out.println(Texts.MISSION_DELETE);
-        System.out.println(Texts.BACK); System.out.print("Escolha uma opção: ");
+        System.out.println(Texts.MISSION_CREATE);
+        System.out.println(Texts.MISSION_LIST);
+        System.out.println(Texts.MISSION_ACTIVE);
+        System.out.println(Texts.MISSION_UPDATE);
+        System.out.println(Texts.MISSION_STATUS);
+        System.out.println(Texts.MISSION_DELETE);
+        System.out.println(Texts.BACK);
+        System.out.print("Escolha uma opção: ");
     }
 }

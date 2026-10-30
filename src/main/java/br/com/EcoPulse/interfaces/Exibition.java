@@ -1,14 +1,15 @@
 package br.com.EcoPulse.interfaces;
 
+import br.com.EcoPulse.config.ConnectionFactory;
 import br.com.EcoPulse.controller.AvatarController;
 import br.com.EcoPulse.controller.MissionController;
 import br.com.EcoPulse.controller.UserController;
-import br.com.EcoPulse.config.ConnectionFactory;
 import br.com.EcoPulse.domain.Avatar;
 import br.com.EcoPulse.domain.Mission;
 import br.com.EcoPulse.domain.User;
 import br.com.EcoPulse.exception.EcoPulseException;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Scanner;
 
@@ -45,10 +46,8 @@ public class Exibition {
 
     private static void handleUserMenu() {
         boolean back = false;
-
         while (!back) {
             Menus.showUserMenu();
-
             try {
                 switch (scanner.nextLine()) {
                     case "1" -> createUser();
@@ -69,14 +68,20 @@ public class Exibition {
 
     private static void createUser() {
         User user = new User();
-
-        System.out.print(Texts.PROMPT_NAME);
+        System.out.print("Username público: ");
         user.setUsername(scanner.nextLine());
-
+        System.out.print("Login: ");
+        user.setLogin(scanner.nextLine());
+        System.out.print("Nome completo: ");
+        user.setName(scanner.nextLine());
+        System.out.print("CPF (11 dígitos): ");
+        user.setCpf(scanner.nextLine());
         System.out.print(Texts.PROMPT_EMAIL);
         user.setEmail(scanner.nextLine());
+        System.out.print("Senha: ");
+        String password = scanner.nextLine();
 
-        userController.createUser(user);
+        userController.createUser(user, password);
         System.out.println(Texts.SUCCESS_CREATE + " ID: " + user.getId());
     }
 
@@ -85,7 +90,6 @@ public class Exibition {
             System.out.println(Texts.NOT_FOUND);
             return;
         }
-
         users.forEach(Exibition::printUser);
     }
 
@@ -97,24 +101,19 @@ public class Exibition {
 
     private static void findUser() {
         User user = userController.findUser(readId());
-
         if (user == null) {
             System.out.println(Texts.NOT_FOUND);
             return;
         }
-
         printUser(user);
     }
 
     private static void updateUser() {
         long id = readId();
-
         System.out.print(Texts.PROMPT_NAME);
         String name = scanner.nextLine();
-
         System.out.print(Texts.PROMPT_EMAIL);
         String email = scanner.nextLine();
-
         userController.updateUserProfile(id, name, email);
         System.out.println(Texts.SUCCESS_UPDATE);
     }
@@ -133,16 +132,13 @@ public class Exibition {
 
     private static void handleAvatarMenu() {
         boolean back = false;
-
         while (!back) {
             Menus.showAvatarMenu();
-
             try {
                 switch (scanner.nextLine()) {
                     case "1" -> createAvatar();
                     case "2" -> listAvatars();
                     case "3" -> addAvatarExperience();
-                    case "4" -> registerAvatarInteraction();
                     case "5" -> deleteAvatar();
                     case "0" -> back = true;
                     default -> System.out.println(Texts.INVALID_OPTION);
@@ -155,13 +151,10 @@ public class Exibition {
 
     private static void createAvatar() {
         Avatar avatar = new Avatar();
-
         System.out.print("ID do usuário: ");
         avatar.setUserId(readNumber());
-
         System.out.print("Nome do avatar: ");
         avatar.setName(scanner.nextLine());
-
         System.out.print("Tipo de personalidade: ");
         avatar.setPersonalityType(scanner.nextLine());
 
@@ -171,12 +164,10 @@ public class Exibition {
 
     private static void listAvatars() {
         List<Avatar> avatars = avatarController.list();
-
         if (avatars.isEmpty()) {
             System.out.println(Texts.NOT_FOUND);
             return;
         }
-
         avatars.forEach(avatar -> System.out.println(
                 "ID: " + avatar.getId()
                         + " | " + avatar.getDisplayName()
@@ -187,18 +178,11 @@ public class Exibition {
 
     private static void addAvatarExperience() {
         long id = readId();
-
         System.out.print("Pontos de experiência: ");
         long points = readNumber();
-
         Avatar avatar = avatarController.addExperience(id, points);
         System.out.println("Experiência adicionada. Nível atual: " + avatar.getLevel()
                 + " | Faltam: " + avatar.getExperienceToNextLevel() + " XP");
-    }
-
-    private static void registerAvatarInteraction() {
-        Avatar avatar = avatarController.registerInteraction(readId());
-        System.out.println("Interação registrada para " + avatar.getDisplayName());
     }
 
     private static void deleteAvatar() {
@@ -211,10 +195,8 @@ public class Exibition {
 
     private static void handleMissionMenu() {
         boolean back = false;
-
         while (!back) {
             Menus.showMissionMenu();
-
             try {
                 switch (scanner.nextLine()) {
                     case "1" -> createMission();
@@ -234,20 +216,21 @@ public class Exibition {
 
     private static void createMission() {
         Mission mission = new Mission();
-
         System.out.print("Título: ");
         mission.setTitle(scanner.nextLine());
-
         System.out.print("Descrição: ");
         mission.setDescription(scanner.nextLine());
-
         System.out.print("Tipo: ");
         mission.setType(scanner.nextLine());
+        System.out.print("Regras: ");
+        mission.setRules(scanner.nextLine());
+        mission.setStartDate(Instant.now());
+        mission.setStatus(Mission.STATUS_ATIVA);
 
-        System.out.print("Pontos de recompensa: ");
-        mission.setRewardPoints(readNumber().intValue());
+        System.out.print("ID da recompensa cadastrada: ");
+        Long rewardId = readNumber();
 
-        Mission createdMission = missionController.create(mission);
+        Mission createdMission = missionController.create(mission, List.of(rewardId));
         System.out.println("Missão criada com ID: " + createdMission.getId());
     }
 
@@ -256,36 +239,35 @@ public class Exibition {
             System.out.println(Texts.NOT_FOUND);
             return;
         }
-
         missions.forEach(mission -> System.out.println(
                 "ID: " + mission.getId()
                         + " | " + mission.getDisplayTitle()
-                        + " | Pontos: " + mission.getRewardPoints()
-                        + " | Ativa: " + mission.isAvailable()));
+                        + " | Status: " + mission.getStatus()
+                        + " | Elegível: " + mission.isAvailable()));
     }
 
     private static void updateMission() {
         long id = readId();
-
+        Mission existing = missionController.find(id);
+        if (existing == null) {
+            System.out.println(Texts.NOT_FOUND);
+            return;
+        }
         System.out.print("Novo título: ");
         String title = scanner.nextLine();
-
         System.out.print("Nova descrição: ");
         String description = scanner.nextLine();
+        System.out.print("Novo tipo: ");
+        String type = scanner.nextLine();
 
-        System.out.print("Nova pontuação: ");
-        int points = readNumber().intValue();
-
-        missionController.updateDetails(id, title, description, points);
+        missionController.updateDetails(id, title, description, type, existing.getRules(), existing.getStartDate(), existing.getEndDate());
         System.out.println("Missão atualizada com sucesso!");
     }
 
     private static void changeMissionStatus() {
         long id = readId();
-
         System.out.print("Ativar? (S/N): ");
         boolean active = scanner.nextLine().equalsIgnoreCase("S");
-
         missionController.changeStatus(id, active);
         System.out.println("Status da missão atualizado!");
     }
@@ -313,7 +295,8 @@ public class Exibition {
 
     private static void printUser(User user) {
         System.out.println("ID: " + user.getId()
-                + " | Nome: " + user.getDisplayName()
+                + " | Username: " + user.getDisplayName()
+                + " | Login: " + user.getLogin()
                 + " | E-mail: " + user.getEmail());
     }
 }
